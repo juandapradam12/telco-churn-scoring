@@ -8,7 +8,7 @@
 
 Proyecto de machine learning aplicado a negocio: predicción de churn (clasificación binaria) sobre un dataset de clientes de telecomunicaciones. El objetivo es generar un scoring de riesgo por cliente que permita priorizar las visitas de la fuerza comercial en campo.
 
-El proyecto nació como prueba técnica de ML Engineer; el enunciado original se conserva en [`docs/Prueba_Tecnica_ML_Engineer.pdf`](docs/Prueba_Tecnica_ML_Engineer.pdf).
+El brief original del proyecto se conserva en [`docs/Enunciado_Proyecto_ML.pdf`](docs/Enunciado_Proyecto_ML.pdf).
 
 ---
 
@@ -17,7 +17,7 @@ El proyecto nació como prueba técnica de ML Engineer; el enunciado original se
 ```
 telco-churn-scoring/
 ├── docs/
-│   └── Prueba_Tecnica_ML_Engineer.pdf  # Enunciado original
+│   └── Enunciado_Proyecto_ML.pdf   # Brief del proyecto
 ├── data/
 │   └── telco_churn.csv             # Dataset Telco Customer Churn (Kaggle)
 ├── src/
