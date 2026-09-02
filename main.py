@@ -9,14 +9,15 @@ from src.models.train import (
     build_models,
     train_models,
     compare_models,
+    evaluate_model,
     build_churn_scoring,
     save_model,
 )
 from src.visualization.plots import (
     plot_churn_distribution,
     plot_numeric_by_churn,
-    plot_categorical_churn_rate,
     plot_categorical_distribution,
+    plot_confusion_matrix,
     plot_roc_curves,
     plot_feature_importance,
     plot_shap_summary,
@@ -71,7 +72,20 @@ def main():
 
     best_name = results.iloc[0]["Model"]
     best_model = trained_models[best_name]
-    print(f"\nMejor modelo: {best_name} (F1={results.iloc[0]['F1-Score']})")
+    best_threshold = float(results.iloc[0]["Optimal-Threshold"])
+    print(
+        f"\nMejor modelo: {best_name} "
+        f"(F1={results.iloc[0]['F1-Score']}, umbral={best_threshold})"
+    )
+
+    best_metrics = evaluate_model(
+        best_model, X_test, y_test, model_name=best_name, threshold=best_threshold
+    )
+    plot_confusion_matrix(
+        y_test,
+        best_metrics["y_pred"],
+        model_name=best_name,
+    )
 
     if hasattr(best_model, "feature_importances_"):
         plot_feature_importance(best_model, X_train.columns.tolist(), model_name=best_name)
