@@ -73,6 +73,18 @@ Contiene el analisis completo con explicaciones de cada decision tecnica.
 
 ---
 
+## Deep Dive técnico (versión mejorada)
+
+El pipeline del repo ya incluye una versión “deep” del caso de churn con:
+- partición **train/val/test** (tuning sin sesgo en test),
+- **calibración de probabilidades** (sigmoid/Platt scaling) con métricas como **Brier** y **ECE**,
+- **umbral tuning** y `risk_tier` con cortes alineados a objetivos de recall.
+
+Resumen técnico y resultados en:
+[`docs/churn_case_deep_dive.md`](docs/churn_case_deep_dive.md)
+
+---
+
 ## Modelos comparados
 
 | Modelo | Descripcion |

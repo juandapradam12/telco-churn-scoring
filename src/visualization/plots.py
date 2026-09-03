@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.metrics import roc_curve, auc, ConfusionMatrixDisplay
+from sklearn.metrics import precision_recall_curve, average_precision_score
+from sklearn.calibration import CalibrationDisplay
 
 sns.set_theme(style="whitegrid", palette="muted")
 FIGURES_DIR = Path("output/figures")
@@ -168,6 +170,41 @@ def plot_roc_curves(trained_models, X_test, y_test, save_path=FIGURES_DIR / "roc
     plt.close(fig)
 
 
+def plot_pr_curves(trained_models, X_test, y_test, save_path=FIGURES_DIR / "pr_curves.png"):
+    fig, ax = plt.subplots(figsize=(9, 7))
+    colors = sns.color_palette("tab10", n_colors=len(trained_models))
+
+    for (name, model), color in zip(trained_models.items(), colors):
+        y_proba = model.predict_proba(X_test)[:, 1]
+        precision, recall, _ = precision_recall_curve(y_test, y_proba)
+        pr_auc = average_precision_score(y_test, y_proba)
+        ax.plot(recall, precision, color=color, lw=2, label=f"{name} (AP = {pr_auc:.3f})")
+
+    ax.set_xlabel("Recall", fontsize=12)
+    ax.set_ylabel("Precision", fontsize=12)
+    ax.set_title("Curvas Precision-Recall — Comparativa de Modelos", fontsize=14, fontweight="bold")
+    ax.legend(fontsize=11)
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+def plot_calibration_curve(model, X_test, y_test, model_name="Modelo", save_path=None, n_bins: int = 10):
+    fig, ax = plt.subplots(figsize=(7, 6))
+    CalibrationDisplay.from_estimator(
+        model,
+        X_test,
+        y_test,
+        n_bins=n_bins,
+        name=model_name,
+        ax=ax,
+    )
+    ax.set_title(f"Curva de Calibración — {model_name}", fontsize=14, fontweight="bold")
+    plt.tight_layout()
+    _save_fig(fig, save_path or (FIGURES_DIR / f"calibration_{model_name}.png"))
+    plt.close(fig)
+
+
 def plot_feature_importance(model, feature_names, top_n=20, model_name="Modelo", save_path=None):
     importances = pd.Series(model.feature_importances_, index=feature_names)
     top = importances.nlargest(top_n).sort_values()
@@ -210,13 +247,18 @@ def plot_shap_summary(model, X_test, model_name="Modelo", save_path=None):
     plt.close(fig)
 
 
-def plot_churn_score_distribution(scoring_df, save_path=FIGURES_DIR / "churn_score_distribution.png"):
+def plot_churn_score_distribution(
+    scoring_df,
+    threshold_medium: float = 0.3,
+    threshold_high: float = 0.6,
+    save_path=FIGURES_DIR / "churn_score_distribution.png",
+):
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     # Histograma del score
     scoring_df["churn_score"].hist(bins=40, ax=axes[0], color="#4C72B0", edgecolor="white")
-    axes[0].axvline(0.3, color="orange", linestyle="--", label="Low/Medium")
-    axes[0].axvline(0.6, color="red", linestyle="--", label="Medium/High")
+    axes[0].axvline(float(threshold_medium), color="orange", linestyle="--", label="Low/Medium")
+    axes[0].axvline(float(threshold_high), color="red", linestyle="--", label="Medium/High")
     axes[0].set_title("Distribución del Churn Score", fontsize=13, fontweight="bold")
     axes[0].set_xlabel("Probabilidad de Churn")
     axes[0].legend()

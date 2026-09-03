@@ -1,4 +1,4 @@
-Model,F1-Score,AUC-ROC,Precision,Recall
-RandomForest,0.6594,0.8565,0.6031,0.7273
-XGBoost,0.6477,0.853,0.5632,0.762
-LogisticRegression,0.6449,0.8517,0.5322,0.8182
+Model,F1-Score,AUC-ROC,PR-AUC,Precision,Recall,BrierScore,ECE,threshold_opt,risk_threshold_medium,risk_threshold_high,calibration_method
+RandomForest,0.6601,0.856,0.6757,0.5582,0.8075,0.1315,0.0244,0.25,0.31,0.45,sigmoid
+LogisticRegression,0.644,0.8535,0.678,0.5344,0.8102,0.1313,0.0274,0.25,0.32,0.47,sigmoid
+XGBoost,0.6416,0.8525,0.6645,0.5358,0.7995,0.1338,0.0263,0.23,0.29,0.44,sigmoid
