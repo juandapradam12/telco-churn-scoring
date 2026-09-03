@@ -88,7 +88,7 @@ def find_optimal_threshold(y_true, y_proba, thresholds=None):
         score = f1_score(y_true, y_pred)
         if score > best_f1:
             best_f1 = score
-            best_threshold = float(threshold)
+            best_threshold = round(float(threshold), 2)
 
     return best_threshold, round(best_f1, 4)
 

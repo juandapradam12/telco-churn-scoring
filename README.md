@@ -66,9 +66,22 @@ Genera en `output/`:
 
 ### 3. Ver el analisis narrativo
 
+Con el entorno virtual activado:
+
 ```bash
+source .venv/bin/activate
 jupyter notebook notebooks/churn_analysis.ipynb
 ```
+
+Si `jupyter` no está en el PATH (instalación con `pip install --user`), añade `~/.local/bin`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+jupyter notebook notebooks/churn_analysis.ipynb
+# equivalente: ~/.local/bin/jupyter-notebook notebooks/churn_analysis.ipynb
+```
+
+En Cursor: abre `notebooks/churn_analysis.ipynb` como **Jupyter Notebook** (no como texto/JSON). Si aparece el JSON crudo, usa “Open With → Jupyter Notebook” o el icono de notebook en la esquina superior derecha.
 
 Contiene el analisis completo con explicaciones de cada decision tecnica.
 
