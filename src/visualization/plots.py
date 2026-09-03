@@ -29,7 +29,14 @@ def plot_churn_distribution(df, target="Churn", save_path=FIGURES_DIR / "churn_d
     )
     axes[0].set_title("Distribución de Churn", fontsize=14, fontweight="bold")
 
-    sns.countplot(x=target, data=df, palette=["#4C72B0", "#DD8452"], ax=axes[1])
+    sns.countplot(
+        x=target,
+        hue=target,
+        data=df,
+        palette=["#4C72B0", "#DD8452"],
+        legend=False,
+        ax=axes[1],
+    )
     axes[1].set_title("Conteo de Clientes por Clase", fontsize=14, fontweight="bold")
     for p in axes[1].patches:
         axes[1].annotate(
