@@ -119,6 +119,90 @@ def expected_calibration_error(y_true, y_proba, n_bins: int = 10) -> float:
     return float(ece)
 
 
+def tune_threshold_cost(
+    y_true,
+    y_proba,
+    cost_fn_fp: float = 1.0,
+    cost_fn_false_neg: float = 5.0,
+    threshold_grid=None,
+) -> dict:
+    """
+    Elige el umbral que minimiza el coste total esperado.
+
+    cost_fn_fp       : coste de un falso positivo  (visita comercial innecesaria).
+    cost_fn_false_neg: coste de un falso negativo  (cliente que churna sin ser detectado).
+
+    Con desbalanceo 26.5% churn y cost_fn_false_neg >> cost_fn_fp el umbral óptimo
+    cae significativamente por debajo de 0.5 — lo que justifica la estrategia de
+    class_weight="balanced" más threshold tuning en lugar de accuracy naive.
+    """
+    y_true = np.asarray(y_true)
+    y_proba = np.asarray(y_proba)
+
+    if threshold_grid is None:
+        threshold_grid = np.linspace(0.02, 0.98, 97)
+
+    best_cost = np.inf
+    best = None
+
+    for t in threshold_grid:
+        y_pred = (y_proba >= t).astype(int)
+        fp = ((y_pred == 1) & (y_true == 0)).sum()
+        fn = ((y_pred == 0) & (y_true == 1)).sum()
+        cost = fp * cost_fn_fp + fn * cost_fn_false_neg
+
+        if cost < best_cost:
+            best_cost = cost
+            prec = precision_score(y_true, y_pred, zero_division=0)
+            rec = recall_score(y_true, y_pred, zero_division=0)
+            f1 = f1_score(y_true, y_pred, zero_division=0)
+            best = {
+                "threshold": float(t),
+                "expected_cost": float(cost),
+                "fp": int(fp),
+                "fn": int(fn),
+                "precision": float(prec),
+                "recall": float(rec),
+                "f1": float(f1),
+                "cost_fp": cost_fn_fp,
+                "cost_fn": cost_fn_false_neg,
+            }
+
+    return best
+
+
+def build_cost_curve(
+    y_true,
+    y_proba,
+    cost_fn_fp: float = 1.0,
+    cost_fn_false_neg: float = 5.0,
+    threshold_grid=None,
+) -> pd.DataFrame:
+    """Devuelve DataFrame con coste esperado por umbral (para graficar)."""
+    y_true = np.asarray(y_true)
+    y_proba = np.asarray(y_proba)
+
+    if threshold_grid is None:
+        threshold_grid = np.linspace(0.01, 0.99, 99)
+
+    rows = []
+    for t in threshold_grid:
+        y_pred = (y_proba >= t).astype(int)
+        fp = ((y_pred == 1) & (y_true == 0)).sum()
+        fn = ((y_pred == 0) & (y_true == 1)).sum()
+        tp = ((y_pred == 1) & (y_true == 1)).sum()
+        rows.append({
+            "threshold": t,
+            "cost": fp * cost_fn_fp + fn * cost_fn_false_neg,
+            "fp": int(fp),
+            "fn": int(fn),
+            "tp": int(tp),
+            "recall": tp / max((y_true == 1).sum(), 1),
+            "precision": tp / max((y_pred == 1).sum(), 1),
+        })
+    return pd.DataFrame(rows)
+
+
 def tune_threshold(
     y_true,
     y_proba,
