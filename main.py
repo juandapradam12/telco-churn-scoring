@@ -14,7 +14,7 @@ from src.models.train import (
 )
 from src.models.tuning import tune_all_models
 from src.models.lift import run_lift_analysis
-from src.cases import commercial_potential, anomaly_detection, unified_scoring
+from src.cases import commercial_potential, anomaly_detection, unified_scoring, survival_analysis
 from src.visualization.plots import (
     plot_churn_distribution,
     plot_numeric_by_churn,
@@ -31,6 +31,9 @@ from src.visualization.plots import (
     plot_anomaly_scoring,
     plot_lift_gains,
     plot_unified_scoring,
+    plot_kaplan_meier,
+    plot_cox_hazard_ratios,
+    plot_survival_risk_distribution,
 )
 
 DATA_PATH = Path("data/telco_churn.csv")
@@ -44,12 +47,12 @@ def main():
     print("=" * 60)
 
     # 1. Carga y validacion
-    print("\n[1/8] Cargando datos...")
+    print("\n[1/9] Cargando datos...")
     df_raw = load_data(DATA_PATH)
     validate_data(df_raw)
 
     # 2. EDA
-    print("\n[2/8] Generando visualizaciones EDA...")
+    print("\n[2/9] Generando visualizaciones EDA...")
     cat_cols = [
         "gender", "SeniorCitizen", "Partner", "Dependents",
         "PhoneService", "MultipleLines", "InternetService",
@@ -62,7 +65,7 @@ def main():
     plot_categorical_distribution(df_raw, cat_cols=cat_cols)
 
     # 3. Preprocesamiento y features
-    print("\n[3/8] Preprocesando y construyendo features...")
+    print("\n[3/9] Preprocesando y construyendo features...")
     df_processed = preprocess(df_raw)
     df_features = build_features(df_processed)
     X_train, X_val, X_test, y_train, y_val, y_test, cid_train, cid_val, cid_test = split_data(
@@ -73,7 +76,7 @@ def main():
     print(f"  (Un modelo naive con threshold 0.5 ignora este desbalanceo)")
 
     # 4. Tuning con CV anidado sobre train
-    print("\n[4/8] Hyperparameter tuning (RandomizedSearchCV sobre train)...")
+    print("\n[4/9] Hyperparameter tuning (RandomizedSearchCV sobre train)...")
     tuned_models, tuning_summary = tune_all_models(
         X_train, y_train, scale_pos_weight=scale_pos,
         n_iter=20, cv=5,
@@ -82,7 +85,7 @@ def main():
     print(tuning_summary.to_string(index=False))
 
     # 5. Evaluacion: calibracion + threshold
-    print("\n[5/8] Evaluando modelos (calibracion + threshold por costes)...")
+    print("\n[5/9] Evaluando modelos (calibracion + threshold por costes)...")
     results, trained_detail = train_evaluate_with_calibration(
         tuned_models,
         X_train, y_train,
@@ -140,7 +143,7 @@ def main():
         plot_shap_summary(best_base_model, X_test, model_name=best_name)
 
     # 6. Scoring comercial churn (toda la base)
-    print("\n[6/8] Generando scoring de churn...")
+    print("\n[6/9] Generando scoring de churn...")
     X_all = df_features.drop(columns=["Churn", "customerID"])
     customer_ids_all = df_features["customerID"]
     scoring = build_churn_scoring(
@@ -165,7 +168,7 @@ def main():
         save_model(d["calibrated"], name=f"{name}_calibrated")
 
     # 7. Casos adicionales
-    print("\n[7/8] Ejecutando casos adicionales...")
+    print("\n[7/9] Ejecutando casos adicionales...")
 
     case2 = commercial_potential.run(df_raw)
     plot_potential_scoring(case2["scoring"])
@@ -173,8 +176,15 @@ def main():
     case3 = anomaly_detection.run(df_raw)
     plot_anomaly_scoring(case3["scoring"])
 
-    # 8. Score comercial unificado
-    print("\n[8/8] Construyendo score comercial unificado...")
+    # 8. Survival analysis
+    print("\n[8/9] Survival analysis (Kaplan-Meier + Cox PH)...")
+    case4 = survival_analysis.run(df_raw)
+    plot_kaplan_meier(case4["km"]["km_global"], case4["km"]["km_by_contract"])
+    plot_cox_hazard_ratios(case4["hr_table"])
+    plot_survival_risk_distribution(case4["scoring"])
+
+    # 9. Score comercial unificado
+    print("\n[9/9] Construyendo score comercial unificado...")
     unified = unified_scoring.run(
         churn_scoring=scoring,
         potential_scoring=case2["scoring"],

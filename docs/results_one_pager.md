@@ -35,19 +35,20 @@ Validacion: **train / val / test**. Tuning solo en train. Calibracion y umbrales
 **Costes:** con `cost(FN)=5 × cost(FP)`, umbral optimo ~**0.21** (no 0.5).
 
 **Case 2:** XGBoost Regressor MAE ≈ 0.33 | R² ≈ 0.997  
+**Survival:** Cox concordance ≈ 0.83; Month-to-month HR ≈ 9.2x; riesgo a 12m por cliente  
 **Unificado:** segmentos `Retain_HighValue`, `Retain_Urgent`, `Grow_Upsell`, etc.
 
 ## Por que importa
 
-El output no es solo un modelo: es una **cola accionable** (retencion, upsell, revision de facturacion) con score interpretable como probabilidad.
+El output no es solo un modelo: es una **cola accionable** (retencion, upsell, revision de facturacion) con score interpretable como probabilidad — y survival añade *cuándo* (horizonte 6/12/24m), no solo *si*.
 
 ## Limitaciones
 
-- Datos de snapshot (no historico mes a mes)
+- Datos de snapshot (no historico mes a mes) → survival usa `tenure` + censoring
 - Anomalias ≠ churn (Precision@K ~ base rate)
 - Sin experimento A/B de impacto causal
 
-## Siguiente capa tecnica natural
+## Ya implementado (capa survival)
 
-**Survival analysis** usando `tenure` como tiempo y `Churn` como evento (Kaplan–Meier / Cox):
-responde *cuándo* se va el cliente, no solo *si*. Viable ya; no requiere datos externos, pero es una aproximacion (censoring de snapshot, no panel longitudinal).
+Kaplan–Meier (global + por Contract) y Cox PH sobre `tenure` / `Churn`.
+Artefactos: `survival_kaplan_meier.png`, `survival_cox_hazard_ratios.csv`, `survival_risk_scoring.csv`.

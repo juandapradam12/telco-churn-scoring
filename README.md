@@ -5,8 +5,8 @@ Clasificacion calibrada, lift/gains y priorizacion comercial unificada
 
 **Autor:** Juan Prada
 
-> **Descripcion para GitHub** (About → editar, ver seccion abajo):
-> `Deep dive de churn scoring: calibración, lift/gains, umbral por costes y priorización comercial unificada (clasificación + potencial + anomalías)`
+> **GitHub description** (About → gear icon):
+> `Deep-dive churn scoring: calibration, lift/gains, cost-based thresholds, survival analysis, and unified commercial prioritization (classification + upsell + anomalies)`
 
 ---
 
@@ -55,6 +55,7 @@ telco-churn-scoring/
 │   ├── cases/
 │   │   ├── commercial_potential.py
 │   │   ├── anomaly_detection.py
+│   │   ├── survival_analysis.py      # Kaplan-Meier + Cox PH
 │   │   └── unified_scoring.py
 │   └── visualization/plots.py
 ├── notebooks/churn_analysis.ipynb
@@ -103,7 +104,8 @@ jupyter notebook notebooks/churn_analysis.ipynb
 5. **Threshold por costes** (`cost FN = 5 × cost FP`) y **lift/gains**
 6. Scoring de churn (tiers dinamicos desde val)
 7. Case 2 (regresion de potencial) + Case 3 (Isolation Forest)
-8. **Score comercial unificado** (pesos 0.50 / 0.30 / 0.20)
+8. **Survival analysis** (Kaplan–Meier + Cox PH) con riesgo a 6/12/24 meses
+9. **Score comercial unificado** (pesos 0.50 / 0.30 / 0.20)
 
 ---
 
@@ -125,6 +127,11 @@ Lift (RandomForest, test):
 
 Desbalanceo: **26.5% churn**. Umbral optimo por costes (~0.21) baja respecto a 0.5.
 
+Survival (Cox PH):
+- Concordance ≈ **0.83**
+- `Month-to-month` HR ≈ **9.2x** vs contratos largos
+- Output: `P(churn en 6/12/24 meses)` por cliente
+
 ---
 
 ## Tratamiento del desbalanceo
@@ -142,4 +149,4 @@ Desbalanceo: **26.5% churn**. Umbral optimo por costes (~0.21) baja respecto a 0
 - Case 3 detecta rareza de facturacion, no churn directo
 - Reentrenar periodicamente; validar acciones con A/B
 
-Proximas mejoras naturales: survival (Kaplan–Meier / Cox) sobre `tenure`, capacity-aware thresholding, y enriquecimiento de anomalias.
+Proximas mejoras naturales: capacity-aware thresholding, enriquecimiento de anomalias, y survival con historico longitudinal real (si aparece panel temporal).

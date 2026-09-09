@@ -478,3 +478,86 @@ def plot_unified_scoring(
     plt.tight_layout()
     _save_fig(fig, save_path)
     plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Survival analysis
+# ---------------------------------------------------------------------------
+
+def plot_kaplan_meier(
+    km_global,
+    km_by_contract: dict,
+    save_path=FIGURES_DIR / "survival_kaplan_meier.png",
+):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    ax = axes[0]
+    km_global.plot_survival_function(ax=ax, color="#4C72B0", ci_show=True)
+    ax.set_title("Kaplan-Meier — Supervivencia global", fontsize=13, fontweight="bold")
+    ax.set_xlabel("Tenure (meses)")
+    ax.set_ylabel("S(t) = P(permanecer activo)")
+    ax.set_ylim(0, 1.05)
+
+    ax2 = axes[1]
+    colors = {"Month-to-month": "#DD8452", "One year": "#FDD783", "Two year": "#4C72B0"}
+    for name, km in km_by_contract.items():
+        km.plot_survival_function(ax=ax2, ci_show=False, color=colors.get(name, None))
+    ax2.set_title("Kaplan-Meier por Contract", fontsize=13, fontweight="bold")
+    ax2.set_xlabel("Tenure (meses)")
+    ax2.set_ylabel("S(t) = P(permanecer activo)")
+    ax2.set_ylim(0, 1.05)
+    ax2.legend(title="Contract", fontsize=9)
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+def plot_cox_hazard_ratios(
+    hr_table: pd.DataFrame,
+    save_path=FIGURES_DIR / "survival_cox_hazard_ratios.png",
+    top_n: int = 12,
+):
+    df = hr_table.copy().head(top_n).iloc[::-1]
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.hlines(df["feature"], df["hr_ci_low"], df["hr_ci_high"], color="#4C72B0", lw=2)
+    ax.plot(df["hazard_ratio"], df["feature"], "o", color="#DD8452", markersize=8)
+    ax.axvline(1.0, color="gray", linestyle="--", lw=1.5, label="HR = 1 (sin efecto)")
+    ax.set_xlabel("Hazard Ratio (exp(coef))", fontsize=12)
+    ax.set_title("Cox PH — Hazard Ratios (IC 95%)", fontsize=13, fontweight="bold")
+    ax.legend(fontsize=9)
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+def plot_survival_risk_distribution(
+    scoring_df: pd.DataFrame,
+    save_path=FIGURES_DIR / "survival_risk_distribution.png",
+):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    scoring_df["churn_prob_within_12m"].hist(
+        bins=40, ax=axes[0], color="#4C72B0", edgecolor="white"
+    )
+    axes[0].set_title("P(churn en 12 meses) — Cox PH", fontsize=13, fontweight="bold")
+    axes[0].set_xlabel("1 - S(12 | X)")
+
+    tier_order = ["High", "Medium", "Low"]
+    tier_colors = {"High": "#DD8452", "Medium": "#FDD783", "Low": "#4C72B0"}
+    counts = scoring_df["survival_risk_tier"].value_counts().reindex(tier_order)
+    axes[1].bar(
+        counts.index.astype(str),
+        counts.values,
+        color=[tier_colors[t] for t in counts.index],
+        edgecolor="black",
+    )
+    axes[1].set_title("Clientes por Survival Risk Tier (12m)", fontsize=13, fontweight="bold")
+    axes[1].set_ylabel("Numero de clientes")
+    for i, val in enumerate(counts.values):
+        pct = val / len(scoring_df) * 100
+        axes[1].annotate(f"{val:,} ({pct:.1f}%)", (i, val), ha="center", va="bottom", fontsize=10)
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
