@@ -27,6 +27,8 @@ jobs:
 
       - name: Run unit tests
         run: pytest -q tests/
+        env:
+          PYTHONPATH: .
 
   smoke-pipeline:
     name: Pipeline smoke
