@@ -403,3 +403,78 @@ def plot_anomaly_scoring(
     plt.tight_layout()
     _save_fig(fig, save_path)
     plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Lift / Gains
+# ---------------------------------------------------------------------------
+
+def plot_lift_gains(
+    lift_df: pd.DataFrame,
+    model_name: str = "Modelo",
+    save_path=FIGURES_DIR / "lift_gains.png",
+):
+    """
+    Dos paneles:
+    - Lift por decile
+    - Cumulative gains (recall acumulado) vs % clientes contactados
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    ax = axes[0]
+    ax.bar(lift_df["decile"].astype(str), lift_df["lift"], color="#4C72B0", edgecolor="black")
+    ax.axhline(1.0, color="#DD8452", linestyle="--", lw=1.5, label="Baseline (lift=1)")
+    ax.set_xlabel("Decile (1 = top 10% mas riesgoso)", fontsize=11)
+    ax.set_ylabel("Lift", fontsize=11)
+    ax.set_title(f"Lift por Decile — {model_name}", fontsize=13, fontweight="bold")
+    ax.legend(fontsize=9)
+    for i, row in lift_df.iterrows():
+        ax.annotate(f"{row['lift']:.1f}x", (i, row["lift"]),
+                    ha="center", va="bottom", fontsize=8)
+
+    ax2 = axes[1]
+    x = [0.0] + lift_df["cumulative_customers"].tolist()
+    y = [0.0] + lift_df["cumulative_recall"].tolist()
+    ax2.plot(x, y, color="#4C72B0", lw=2.5, marker="o", label="Modelo")
+    ax2.plot([0, 1], [0, 1], color="gray", linestyle="--", lw=1.5, label="Aleatorio")
+    ax2.set_xlabel("% Clientes contactados", fontsize=11)
+    ax2.set_ylabel("% Churners capturados (recall acumulado)", fontsize=11)
+    ax2.set_title(f"Curva de Gains — {model_name}", fontsize=13, fontweight="bold")
+    ax2.legend(fontsize=10)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1.05)
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Unified commercial scoring
+# ---------------------------------------------------------------------------
+
+def plot_unified_scoring(
+    scoring_df: pd.DataFrame,
+    save_path=FIGURES_DIR / "unified_commercial_scoring.png",
+):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    scoring_df["commercial_priority_score"].hist(
+        bins=40, ax=axes[0], color="#4C72B0", edgecolor="white"
+    )
+    axes[0].set_title("Distribucion del Score Comercial Unificado", fontsize=13, fontweight="bold")
+    axes[0].set_xlabel("commercial_priority_score")
+
+    seg_counts = scoring_df["commercial_segment"].value_counts()
+    axes[1].barh(seg_counts.index[::-1], seg_counts.values[::-1], color="#DD8452", edgecolor="black")
+    axes[1].set_title("Clientes por Segmento Comercial", fontsize=13, fontweight="bold")
+    axes[1].set_xlabel("Numero de clientes")
+    for i, (idx, val) in enumerate(zip(seg_counts.index[::-1], seg_counts.values[::-1])):
+        pct = val / len(scoring_df) * 100
+        axes[1].annotate(f"{val:,} ({pct:.1f}%)", (val, i),
+                         va="center", ha="left", fontsize=9, xytext=(4, 0),
+                         textcoords="offset points")
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)

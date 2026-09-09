@@ -125,6 +125,25 @@ Genera `output/reports/model_comparison.csv`.
 
 **Mejor modelo por F1**: `RandomForest`.
 
+### Lift / Gains (negocio)
+
+Sobre el holdout de test, el scoring se evalúa también en deciles:
+
+- `output/reports/lift_table_<Model>.csv`
+- `output/figures/lift_gains.png`
+
+Interpretación típica: el top 10%/20% del score captura mucho más churn que un contacto aleatorio (lift > 1).
+
+### Score comercial unificado
+
+Combina churn + potencial + anomalía en:
+
+- `output/reports/unified_commercial_scoring.csv`
+- `output/figures/unified_commercial_scoring.png`
+
+Pesos por defecto: churn 0.50 / potential 0.30 / anomaly 0.20.
+Segmentos de playbook: `Retain_HighValue`, `Retain_InvestigateBill`, `Retain_Urgent`, `Nurture_Upsell`, `Grow_Upsell`, `Investigate_Billing`, `Maintain`.
+
 ---
 
 ## 9) Artefactos generados
@@ -137,12 +156,19 @@ Carpetas:
 - Reportes:
   - `output/reports/model_comparison.csv`
   - `output/reports/churn_scoring.csv`
+  - `output/reports/lift_table_*.csv`
+  - `output/reports/case2_*.csv`
+  - `output/reports/case3_*.csv`
+  - `output/reports/unified_commercial_scoring.csv`
 - Figuras:
   - `output/figures/roc_curves.png`
   - `output/figures/pr_curves.png`
   - `output/figures/calibration_<Model>.png`
+  - `output/figures/cost_curve.png`
+  - `output/figures/lift_gains.png`
   - `output/figures/shap_summary_<Model>.png` (si aplica)
   - `output/figures/churn_score_distribution.png`
+  - `output/figures/unified_commercial_scoring.png`
 
 ---
 
