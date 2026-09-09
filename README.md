@@ -33,6 +33,7 @@ Proyecto de machine learning aplicado a negocio sobre el dataset
 Brief del proyecto: [`docs/Enunciado_Proyecto_ML.pdf`](docs/Enunciado_Proyecto_ML.pdf)  
 One-pager: [`docs/results_one_pager.md`](docs/results_one_pager.md)  
 Ejemplo Cliente A vs B: [`docs/example_client_a_vs_b.md`](docs/example_client_a_vs_b.md)  
+Demo 2 min: [`docs/demo_2min.md`](docs/demo_2min.md) · `python3 scripts/demo_2min.py`  
 Detalle tecnico: [`docs/churn_case_deep_dive.md`](docs/churn_case_deep_dive.md)
 
 ---
