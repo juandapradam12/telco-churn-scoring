@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.metrics import roc_curve, auc, ConfusionMatrixDisplay
+from sklearn.metrics import precision_recall_curve, average_precision_score
+from sklearn.calibration import CalibrationDisplay
 
 sns.set_theme(style="whitegrid", palette="muted")
 FIGURES_DIR = Path("output/figures")
@@ -29,7 +31,14 @@ def plot_churn_distribution(df, target="Churn", save_path=FIGURES_DIR / "churn_d
     )
     axes[0].set_title("Distribución de Churn", fontsize=14, fontweight="bold")
 
-    sns.countplot(x=target, data=df, palette=["#4C72B0", "#DD8452"], ax=axes[1])
+    sns.countplot(
+        x=target,
+        hue=target,
+        data=df,
+        palette=["#4C72B0", "#DD8452"],
+        legend=False,
+        ax=axes[1],
+    )
     axes[1].set_title("Conteo de Clientes por Clase", fontsize=14, fontweight="bold")
     for p in axes[1].patches:
         axes[1].annotate(
@@ -161,6 +170,41 @@ def plot_roc_curves(trained_models, X_test, y_test, save_path=FIGURES_DIR / "roc
     plt.close(fig)
 
 
+def plot_pr_curves(trained_models, X_test, y_test, save_path=FIGURES_DIR / "pr_curves.png"):
+    fig, ax = plt.subplots(figsize=(9, 7))
+    colors = sns.color_palette("tab10", n_colors=len(trained_models))
+
+    for (name, model), color in zip(trained_models.items(), colors):
+        y_proba = model.predict_proba(X_test)[:, 1]
+        precision, recall, _ = precision_recall_curve(y_test, y_proba)
+        pr_auc = average_precision_score(y_test, y_proba)
+        ax.plot(recall, precision, color=color, lw=2, label=f"{name} (AP = {pr_auc:.3f})")
+
+    ax.set_xlabel("Recall", fontsize=12)
+    ax.set_ylabel("Precision", fontsize=12)
+    ax.set_title("Curvas Precision-Recall — Comparativa de Modelos", fontsize=14, fontweight="bold")
+    ax.legend(fontsize=11)
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+def plot_calibration_curve(model, X_test, y_test, model_name="Modelo", save_path=None, n_bins: int = 10):
+    fig, ax = plt.subplots(figsize=(7, 6))
+    CalibrationDisplay.from_estimator(
+        model,
+        X_test,
+        y_test,
+        n_bins=n_bins,
+        name=model_name,
+        ax=ax,
+    )
+    ax.set_title(f"Curva de Calibración — {model_name}", fontsize=14, fontweight="bold")
+    plt.tight_layout()
+    _save_fig(fig, save_path or (FIGURES_DIR / f"calibration_{model_name}.png"))
+    plt.close(fig)
+
+
 def plot_feature_importance(model, feature_names, top_n=20, model_name="Modelo", save_path=None):
     importances = pd.Series(model.feature_importances_, index=feature_names)
     top = importances.nlargest(top_n).sort_values()
@@ -203,13 +247,18 @@ def plot_shap_summary(model, X_test, model_name="Modelo", save_path=None):
     plt.close(fig)
 
 
-def plot_churn_score_distribution(scoring_df, save_path=FIGURES_DIR / "churn_score_distribution.png"):
+def plot_churn_score_distribution(
+    scoring_df,
+    threshold_medium: float = 0.3,
+    threshold_high: float = 0.6,
+    save_path=FIGURES_DIR / "churn_score_distribution.png",
+):
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     # Histograma del score
     scoring_df["churn_score"].hist(bins=40, ax=axes[0], color="#4C72B0", edgecolor="white")
-    axes[0].axvline(0.3, color="orange", linestyle="--", label="Low/Medium")
-    axes[0].axvline(0.6, color="red", linestyle="--", label="Medium/High")
+    axes[0].axvline(float(threshold_medium), color="orange", linestyle="--", label="Low/Medium")
+    axes[0].axvline(float(threshold_high), color="red", linestyle="--", label="Medium/High")
     axes[0].set_title("Distribución del Churn Score", fontsize=13, fontweight="bold")
     axes[0].set_xlabel("Probabilidad de Churn")
     axes[0].legend()
@@ -226,6 +275,288 @@ def plot_churn_score_distribution(scoring_df, save_path=FIGURES_DIR / "churn_sco
         pct = val / len(scoring_df) * 100
         axes[1].annotate(f"{val:,} ({pct:.1f}%)", (i, val),
                          ha="center", va="bottom", fontsize=11)
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Cost curve (desbalanceo + thresholding)
+# ---------------------------------------------------------------------------
+
+def plot_cost_curve(
+    cost_df: pd.DataFrame,
+    optimal_threshold: float | None = None,
+    save_path=FIGURES_DIR / "cost_curve.png",
+):
+    """
+    Grafica el coste esperado por umbral.
+    `cost_df` debe tener columnas: threshold, cost, recall, precision.
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    ax = axes[0]
+    ax.plot(cost_df["threshold"], cost_df["cost"], color="#4C72B0", lw=2)
+    if optimal_threshold is not None:
+        opt_cost = cost_df.loc[
+            (cost_df["threshold"] - optimal_threshold).abs().idxmin(), "cost"
+        ]
+        ax.axvline(optimal_threshold, color="#DD8452", linestyle="--", lw=1.5,
+                   label=f"Umbral optimo = {optimal_threshold:.2f}")
+        ax.scatter([optimal_threshold], [opt_cost], color="#DD8452", zorder=5, s=80)
+        ax.legend(fontsize=10)
+    ax.set_xlabel("Umbral de clasificacion", fontsize=12)
+    ax.set_ylabel("Coste esperado total", fontsize=12)
+    ax.set_title("Curva de Coste vs Umbral\n(coste FN >> coste FP)", fontsize=13, fontweight="bold")
+
+    ax2 = axes[1]
+    ax2.plot(cost_df["threshold"], cost_df["recall"], color="#DD8452", lw=2, label="Recall (churners capturados)")
+    ax2.plot(cost_df["threshold"], cost_df["precision"], color="#4C72B0", lw=2, label="Precision")
+    if optimal_threshold is not None:
+        ax2.axvline(optimal_threshold, color="gray", linestyle="--", lw=1.5,
+                    label=f"Umbral optimo = {optimal_threshold:.2f}")
+    ax2.set_xlabel("Umbral de clasificacion", fontsize=12)
+    ax2.set_ylabel("Metrica", fontsize=12)
+    ax2.set_title("Recall y Precision vs Umbral", fontsize=13, fontweight="bold")
+    ax2.legend(fontsize=10)
+    ax2.set_ylim(0, 1.05)
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Case 2: Potential Scoring
+# ---------------------------------------------------------------------------
+
+def plot_potential_scoring(
+    scoring_df: pd.DataFrame,
+    save_path=FIGURES_DIR / "case2_potential_distribution.png",
+):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    scoring_df["monthly_potential_eur"].hist(
+        bins=40, ax=axes[0], color="#4C72B0", edgecolor="white"
+    )
+    axes[0].set_title("Distribucion del Potencial Mensual (EUR)", fontsize=13, fontweight="bold")
+    axes[0].set_xlabel("Incremento potencial en facturacion mensual")
+
+    tier_order = ["High", "Medium", "Low"]
+    tier_colors = {"High": "#DD8452", "Medium": "#FDD783", "Low": "#4C72B0"}
+    counts = scoring_df["upsell_priority"].value_counts().reindex(tier_order)
+    axes[1].bar(
+        counts.index,
+        counts.values,
+        color=[tier_colors[t] for t in counts.index],
+        edgecolor="black",
+    )
+    axes[1].set_title("Clientes por Prioridad de Upsell", fontsize=13, fontweight="bold")
+    axes[1].set_ylabel("Numero de clientes")
+    for i, (idx, val) in enumerate(counts.items()):
+        pct = val / len(scoring_df) * 100
+        axes[1].annotate(f"{val:,} ({pct:.1f}%)", (i, val),
+                         ha="center", va="bottom", fontsize=11)
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Case 3: Anomaly Scoring
+# ---------------------------------------------------------------------------
+
+def plot_anomaly_scoring(
+    scoring_df: pd.DataFrame,
+    save_path=FIGURES_DIR / "case3_anomaly_distribution.png",
+):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    for label, color in [(0, "#4C72B0"), (1, "#DD8452")]:
+        subset = scoring_df.loc[scoring_df["churn_real"] == label, "anomaly_score"]
+        axes[0].hist(
+            subset, bins=30, alpha=0.6, color=color,
+            label="No Churn" if label == 0 else "Churn", density=True,
+        )
+    axes[0].set_title("Anomaly Score: Churners vs No-Churners", fontsize=13, fontweight="bold")
+    axes[0].set_xlabel("Anomaly Score (1 = mas anomalo)")
+    axes[0].legend(fontsize=10)
+
+    anomaly_colors = {0: "#4C72B0", 1: "#DD8452"}
+    counts = scoring_df["is_anomaly"].value_counts()
+    labels_map = {0: "Normal", 1: "Anomalia"}
+    bars = axes[1].bar(
+        [labels_map[k] for k in counts.index],
+        counts.values,
+        color=[anomaly_colors[k] for k in counts.index],
+        edgecolor="black",
+    )
+    axes[1].set_title("Clientes Normales vs Anomalias", fontsize=13, fontweight="bold")
+    axes[1].set_ylabel("Numero de clientes")
+    for bar, val in zip(bars, counts.values):
+        pct = val / len(scoring_df) * 100
+        axes[1].annotate(f"{val:,} ({pct:.1f}%)", (bar.get_x() + bar.get_width() / 2, val),
+                         ha="center", va="bottom", fontsize=11)
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Lift / Gains
+# ---------------------------------------------------------------------------
+
+def plot_lift_gains(
+    lift_df: pd.DataFrame,
+    model_name: str = "Modelo",
+    save_path=FIGURES_DIR / "lift_gains.png",
+):
+    """
+    Dos paneles:
+    - Lift por decile
+    - Cumulative gains (recall acumulado) vs % clientes contactados
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    ax = axes[0]
+    ax.bar(lift_df["decile"].astype(str), lift_df["lift"], color="#4C72B0", edgecolor="black")
+    ax.axhline(1.0, color="#DD8452", linestyle="--", lw=1.5, label="Baseline (lift=1)")
+    ax.set_xlabel("Decile (1 = top 10% mas riesgoso)", fontsize=11)
+    ax.set_ylabel("Lift", fontsize=11)
+    ax.set_title(f"Lift por Decile — {model_name}", fontsize=13, fontweight="bold")
+    ax.legend(fontsize=9)
+    for i, row in lift_df.iterrows():
+        ax.annotate(f"{row['lift']:.1f}x", (i, row["lift"]),
+                    ha="center", va="bottom", fontsize=8)
+
+    ax2 = axes[1]
+    x = [0.0] + lift_df["cumulative_customers"].tolist()
+    y = [0.0] + lift_df["cumulative_recall"].tolist()
+    ax2.plot(x, y, color="#4C72B0", lw=2.5, marker="o", label="Modelo")
+    ax2.plot([0, 1], [0, 1], color="gray", linestyle="--", lw=1.5, label="Aleatorio")
+    ax2.set_xlabel("% Clientes contactados", fontsize=11)
+    ax2.set_ylabel("% Churners capturados (recall acumulado)", fontsize=11)
+    ax2.set_title(f"Curva de Gains — {model_name}", fontsize=13, fontweight="bold")
+    ax2.legend(fontsize=10)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1.05)
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Unified commercial scoring
+# ---------------------------------------------------------------------------
+
+def plot_unified_scoring(
+    scoring_df: pd.DataFrame,
+    save_path=FIGURES_DIR / "unified_commercial_scoring.png",
+):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    scoring_df["commercial_priority_score"].hist(
+        bins=40, ax=axes[0], color="#4C72B0", edgecolor="white"
+    )
+    axes[0].set_title("Distribucion del Score Comercial Unificado", fontsize=13, fontweight="bold")
+    axes[0].set_xlabel("commercial_priority_score")
+
+    seg_counts = scoring_df["commercial_segment"].value_counts()
+    axes[1].barh(seg_counts.index[::-1], seg_counts.values[::-1], color="#DD8452", edgecolor="black")
+    axes[1].set_title("Clientes por Segmento Comercial", fontsize=13, fontweight="bold")
+    axes[1].set_xlabel("Numero de clientes")
+    for i, (idx, val) in enumerate(zip(seg_counts.index[::-1], seg_counts.values[::-1])):
+        pct = val / len(scoring_df) * 100
+        axes[1].annotate(f"{val:,} ({pct:.1f}%)", (val, i),
+                         va="center", ha="left", fontsize=9, xytext=(4, 0),
+                         textcoords="offset points")
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Survival analysis
+# ---------------------------------------------------------------------------
+
+def plot_kaplan_meier(
+    km_global,
+    km_by_contract: dict,
+    save_path=FIGURES_DIR / "survival_kaplan_meier.png",
+):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    ax = axes[0]
+    km_global.plot_survival_function(ax=ax, color="#4C72B0", ci_show=True)
+    ax.set_title("Kaplan-Meier — Supervivencia global", fontsize=13, fontweight="bold")
+    ax.set_xlabel("Tenure (meses)")
+    ax.set_ylabel("S(t) = P(permanecer activo)")
+    ax.set_ylim(0, 1.05)
+
+    ax2 = axes[1]
+    colors = {"Month-to-month": "#DD8452", "One year": "#FDD783", "Two year": "#4C72B0"}
+    for name, km in km_by_contract.items():
+        km.plot_survival_function(ax=ax2, ci_show=False, color=colors.get(name, None))
+    ax2.set_title("Kaplan-Meier por Contract", fontsize=13, fontweight="bold")
+    ax2.set_xlabel("Tenure (meses)")
+    ax2.set_ylabel("S(t) = P(permanecer activo)")
+    ax2.set_ylim(0, 1.05)
+    ax2.legend(title="Contract", fontsize=9)
+
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+def plot_cox_hazard_ratios(
+    hr_table: pd.DataFrame,
+    save_path=FIGURES_DIR / "survival_cox_hazard_ratios.png",
+    top_n: int = 12,
+):
+    df = hr_table.copy().head(top_n).iloc[::-1]
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.hlines(df["feature"], df["hr_ci_low"], df["hr_ci_high"], color="#4C72B0", lw=2)
+    ax.plot(df["hazard_ratio"], df["feature"], "o", color="#DD8452", markersize=8)
+    ax.axvline(1.0, color="gray", linestyle="--", lw=1.5, label="HR = 1 (sin efecto)")
+    ax.set_xlabel("Hazard Ratio (exp(coef))", fontsize=12)
+    ax.set_title("Cox PH — Hazard Ratios (IC 95%)", fontsize=13, fontweight="bold")
+    ax.legend(fontsize=9)
+    plt.tight_layout()
+    _save_fig(fig, save_path)
+    plt.close(fig)
+
+
+def plot_survival_risk_distribution(
+    scoring_df: pd.DataFrame,
+    save_path=FIGURES_DIR / "survival_risk_distribution.png",
+):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    scoring_df["churn_prob_within_12m"].hist(
+        bins=40, ax=axes[0], color="#4C72B0", edgecolor="white"
+    )
+    axes[0].set_title("P(churn en 12 meses) — Cox PH", fontsize=13, fontweight="bold")
+    axes[0].set_xlabel("1 - S(12 | X)")
+
+    tier_order = ["High", "Medium", "Low"]
+    tier_colors = {"High": "#DD8452", "Medium": "#FDD783", "Low": "#4C72B0"}
+    counts = scoring_df["survival_risk_tier"].value_counts().reindex(tier_order)
+    axes[1].bar(
+        counts.index.astype(str),
+        counts.values,
+        color=[tier_colors[t] for t in counts.index],
+        edgecolor="black",
+    )
+    axes[1].set_title("Clientes por Survival Risk Tier (12m)", fontsize=13, fontweight="bold")
+    axes[1].set_ylabel("Numero de clientes")
+    for i, val in enumerate(counts.values):
+        pct = val / len(scoring_df) * 100
+        axes[1].annotate(f"{val:,} ({pct:.1f}%)", (i, val), ha="center", va="bottom", fontsize=10)
 
     plt.tight_layout()
     _save_fig(fig, save_path)

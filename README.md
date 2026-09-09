@@ -1,145 +1,165 @@
-# H&K Prueba Tecnica — ML Engineer
-### Clasificacion de Churn y Priorizacion Comercial
+# Telco Churn Scoring — Deep Dive
 
-**Autor:** Juan Prada · **Fecha:** Abril 2026
+**Autor:** Juan Prada
+
+---
+
+## The story (GitHub About)
+
+> **Planteamiento:** la fuerza comercial no puede llamar a todo el mundo — y llamar al azar desperdicia el presupuesto de retencion.  
+> **Resultado:** un ranking accionable (retener / upsell / revisar facturacion) donde contactar el **top 20%** captura ~**51%** de los churners (**2.5×** vs aleatorio).
+
+**Description para GitHub** (About → ⚙️):
+```text
+Most sales teams call the wrong customers. This project turns telco data into a ranked playbook—retain, upsell, or investigate—where the top 20% captures ~51% of churners (2.5× random).
+```
+
+Alternativa mas corta:
+```text
+Stop calling customers at random. Rank who to retain, upsell, or investigate—top 20% of the list captures ~51% of churners (2.5× better than chance).
+```
 
 ---
 
 ## Contexto
 
-Prueba tecnica para el rol de ML Engineer en H&K. El caso implementado es prediccion de churn (clasificacion binaria) sobre un dataset de clientes de telecomunicaciones. El objetivo es generar un scoring de riesgo por cliente que permita priorizar las visitas de la fuerza comercial en campo.
+Proyecto de machine learning aplicado a negocio sobre el dataset
+[Telco Customer Churn (Kaggle)](https://www.kaggle.com/blastchar/telco-customer-churn):
+
+- **26.5% churn** → desbalanceo moderado (accuracy no es valida)
+- Objetivo: scoring calibrado + urgencia temporal para priorizar acciones comerciales
+- Tres casos + survival + un score unificado con playbooks operativos
+
+Brief del proyecto: [`docs/Enunciado_Proyecto_ML.pdf`](docs/Enunciado_Proyecto_ML.pdf)  
+One-pager: [`docs/results_one_pager.md`](docs/results_one_pager.md)  
+Ejemplo Cliente A vs B: [`docs/example_client_a_vs_b.md`](docs/example_client_a_vs_b.md)  
+Demo 2 min: [`docs/demo_2min.md`](docs/demo_2min.md) · `python3 scripts/demo_2min.py`  
+Detalle tecnico: [`docs/churn_case_deep_dive.md`](docs/churn_case_deep_dive.md)
 
 ---
 
-## Estructura del proyecto
+## Como cambiar la descripcion del repo en GitHub
+
+1. Abre el repo en GitHub.
+2. En la portada, a la derecha, bloque **About**.
+3. Pulsa el icono de **engranaje** (Edit repository details).
+4. Campo **Description** → pega el texto de arriba → **Save changes**.
+
+(Alternativa: `Settings` → `General` → `Repository name` / Description.)
+
+---
+
+## Estructura
 
 ```
-hk-prueba-tecnica-ml/
+telco-churn-scoring/
 ├── docs/
-│   └── Prueba_Tecnica_ML_Engineer.pdf  # Enunciado original de la prueba
-├── data/
-│   └── telco_churn.csv             # Dataset Telco Customer Churn (Kaggle)
+│   ├── Enunciado_Proyecto_ML.pdf
+│   ├── results_one_pager.md
+│   └── churn_case_deep_dive.md
+├── data/telco_churn.csv
 ├── src/
-│   ├── data/
-│   │   └── loader.py               # Carga y validacion de datos
-│   ├── features/
-│   │   └── engineering.py          # Preprocesamiento y feature engineering
+│   ├── data/loader.py
+│   ├── features/engineering.py
 │   ├── models/
-│   │   └── train.py                # Entrenamiento, evaluacion y serializacion
-│   └── visualization/
-│       └── plots.py                # Visualizaciones reutilizables
-├── notebooks/
-│   └── churn_analysis.ipynb        # Notebook narrativo con explicaciones
-├── output/
-│   ├── models/                     # Modelos serializados (.pkl)
-│   ├── figures/                    # Graficas (.png)
-│   └── reports/                    # Metricas y scoring (.csv)
-├── main.py                         # Pipeline ejecutable end-to-end
-├── requirements.txt
-└── README.md
+│   │   ├── train.py      # calibracion, costes, scoring
+│   │   ├── tuning.py     # RandomizedSearchCV
+│   │   └── lift.py       # lift / gains / deciles
+│   ├── cases/
+│   │   ├── commercial_potential.py
+│   │   ├── anomaly_detection.py
+│   │   ├── survival_analysis.py      # Kaplan-Meier + Cox PH
+│   │   └── unified_scoring.py
+│   └── visualization/plots.py
+├── notebooks/churn_analysis.ipynb
+├── output/{models,figures,reports}/
+├── main.py
+└── requirements.txt
 ```
 
 ---
 
 ## Como ejecutar
 
-### 1. Crear entorno virtual e instalar dependencias
-
 ```bash
-python3.11 -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+python3 main.py
 ```
 
-### 2. Ejecutar el pipeline completo
-
-```bash
-python3.11 main.py
-```
-
-Genera en `output/`:
-- `models/` — modelos serializados (LogisticRegression, RandomForest, XGBoost)
-- `figures/` — graficas de EDA, curvas ROC, SHAP, scoring
-- `reports/model_comparison.csv` — tabla comparativa de metricas
-- `reports/churn_scoring.csv` — ranking de clientes por riesgo de churn
-
-### 3. Ver el analisis narrativo
+Notebook narrativo:
 
 ```bash
 jupyter notebook notebooks/churn_analysis.ipynb
 ```
 
-Contiene el analisis completo con explicaciones de cada decision tecnica.
+### Artefactos principales
+
+| Artefacto | Contenido |
+|-----------|-----------|
+| `output/reports/model_comparison.csv` | F1, ROC/PR-AUC, Brier, ECE, umbrales |
+| `output/reports/lift_table_*.csv` | Lift y gains por decil |
+| `output/reports/churn_scoring.csv` | Riesgo de churn + tiers |
+| `output/reports/case2_commercial_scoring.csv` | Potencial de upsell |
+| `output/reports/case3_anomaly_scoring.csv` | Anomalias de facturacion |
+| `output/reports/unified_commercial_scoring.csv` | Prioridad comercial unificada |
+| `output/figures/` | ROC, PR, calibracion, costes, lift, SHAP, etc. |
 
 ---
 
-## Modelos comparados
+## Pipeline (que hace `main.py`)
 
-| Modelo | Descripcion |
-|--------|-------------|
-| Logistic Regression | Baseline lineal interpretable |
-| Random Forest | Ensemble de arboles, captura no-linealidades |
-| XGBoost | Gradient boosting, mejor rendimiento en datos tabulares |
-
-**Metrica principal:** F1-Score  
-**Justificacion:** Con un desbalanceo del 26% de churn, la accuracy no es apropiada. El F1 penaliza tanto falsos negativos (clientes que se van sin detectar) como falsos positivos (recursos desperdiciados). El AUC-ROC complementa midiendo la capacidad discriminativa general.
-
----
-
-## Output de negocio: Scoring de riesgo
-
-El modelo produce un score (0-1) por cliente, segmentado en tres niveles:
-
-| Nivel | Score | Accion recomendada |
-|-------|-------|-------------------|
-| High | > 0.6 | Visita urgente — oferta de retencion personalizada |
-| Medium | 0.3 – 0.6 | Contacto proactivo — revision de contrato |
-| Low | < 0.3 | Mantenimiento — comunicacion periodica |
+1. EDA + feature engineering (servicios, ratios de facturacion, logs)
+2. Split estratificado **train / val / test**
+3. **Hyperparameter tuning** solo en train (`RandomizedSearchCV`)
+4. **Calibracion** de probabilidades en val (sigmoid) + metricas en test
+5. **Threshold por costes** (`cost FN = 5 × cost FP`) y **lift/gains**
+6. Scoring de churn (tiers dinamicos desde val)
+7. Case 2 (regresion de potencial) + Case 3 (Isolation Forest)
+8. **Survival analysis** (Kaplan–Meier + Cox PH) con riesgo a 6/12/24 meses
+9. **Score comercial unificado** (pesos 0.50 / 0.30 / 0.20)
 
 ---
 
-## Tratamiento del desbalanceo de clases
+## Resultados clave (ultima ejecucion)
 
-El dataset tiene un 26.5% de churn — desbalanceo moderado pero suficiente para que un modelo naive aprenda a predecir siempre "No Churn" y obtenga 73% de accuracy sin detectar ningun cliente en riesgo.
+| Modelo | F1 | ROC-AUC | PR-AUC | Recall | ECE |
+|--------|---:|--------:|-------:|-------:|----:|
+| RandomForest | 0.661 | 0.856 | 0.680 | 0.781 | 0.016 |
+| XGBoost | 0.659 | 0.858 | 0.669 | 0.797 | 0.025 |
+| LogisticRegression | 0.643 | 0.853 | 0.678 | 0.810 | 0.026 |
 
-La estrategia adoptada es **ponderacion de clases**:
+Lift (RandomForest, test):
 
-- `LogisticRegression` y `RandomForest` usan `class_weight="balanced"`, que calcula automaticamente un peso inversamente proporcional a la frecuencia de cada clase. Con la distribucion del dataset, la clase churn recibe un peso ~2.8x mayor.
-- `XGBoost` usa `scale_pos_weight = n_negativos / n_positivos ≈ 2.83`, que tiene el mismo efecto dentro del framework de gradient boosting.
+| Contacto | Churners capturados | Lift acumulado |
+|----------|--------------------:|---------------:|
+| Top 10% (decil 1) | 28.3% | 2.85x |
+| Top 20% | 50.8% | 2.55x |
+| Top 30% | 69.0% | 2.30x |
 
-Esto obliga a los modelos a penalizar mas los falsos negativos (clientes que se van sin ser detectados), que es el error mas costoso desde el punto de vista de negocio.
+Desbalanceo: **26.5% churn**. Umbral optimo por costes (~0.21) baja respecto a 0.5.
 
-**Por que no SMOTE u otras tecnicas:**  
-Con un desbalanceo del 26.5% (no extremo), la ponderacion de clases es suficiente y mas interpretable. SMOTE genera muestras sinteticas que pueden introducir ruido con variables categoricas, que son mayoritarias en este dataset. El threshold tuning y la calibracion de probabilidades son mejoras validas para una siguiente iteracion.
+Survival (Cox PH):
+- Concordance ≈ **0.83**
+- `Month-to-month` HR ≈ **9.2x** vs contratos largos
+- Output: `P(churn en 6/12/24 meses)` por cliente
 
 ---
 
-## Limitaciones y mejoras futuras
+## Tratamiento del desbalanceo
 
-### Limitaciones actuales
+- `class_weight="balanced"` / `scale_pos_weight` (~2.8)
+- Metricas: F1, PR-AUC, Recall (no accuracy)
+- Calibracion + threshold por matriz de costes
+- No SMOTE: desbalanceo moderado; variables categoricas mayoritarias
 
-- El dataset es de telecomunicaciones. Aplicarlo a otros sectores requiere revalidar el feature engineering.
-- No se modelan efectos temporales ni estacionalidad del churn.
-- El scoring asume que la distribucion de clientes es estable. Se recomienda reentrenamiento periodico.
-- Como mejoras al tratamiento del desbalanceo: optimizacion del threshold de clasificacion, SMOTE, o calibracion de probabilidades (Platt scaling).
+---
 
-### Que se haria con mas tiempo
+## Limitaciones y siguientes pasos
 
-**Sobre los mismos datos:**
+- Snapshot transversal (no panel temporal completo) → survival es factible con `tenure` + evento `Churn`, con caveats
+- Case 3 detecta rareza de facturacion, no churn directo
+- Reentrenar periodicamente; validar acciones con A/B
 
-- **Threshold tuning:** el umbral de clasificacion (0.5 por defecto) es arbitrario. Se buscaria el umbral optimo barriendo de 0.1 a 0.9 y seleccionando el que maximiza F1, o el que garantiza un Recall minimo del X% segun criterio de negocio.
-- **Optimizacion de hiperparametros:** usando Optuna (busqueda bayesiana) en lugar de grid search, especialmente para XGBoost y Random Forest. Es probable que XGBoost bien afinado supere a Random Forest.
-- **Calibracion de probabilidades:** aplicar Platt scaling o isotonic regression para asegurar que un score de 0.7 signifique realmente un 70% de probabilidad de churn, no solo "mas probable que 0.6". Importante para que el scoring sea interpretable por negocio.
-- **PR-AUC** como metrica adicional: el area bajo la curva Precision-Recall es mas informativa que ROC-AUC cuando el desbalanceo es relevante.
-
-**Con datos temporales:**
-
-- **Survival analysis** (Cox Proportional Hazards, Kaplan-Meier): en lugar de predecir si el cliente se va, predecir *cuando* se va. Permite planificar visitas con mayor anticipacion y priorizar clientes cuyo riesgo aumenta en las proximas semanas.
-- **Features de comportamiento temporal:** variacion de `MonthlyCharges` mes a mes, numero de incidencias de soporte recientes, tendencia de uso de servicios.
-- **Validacion temporal correcta:** en lugar de split aleatorio, usar los ultimos N meses como test para evitar data leakage temporal — el modelo no puede "ver el futuro" durante el entrenamiento.
-
-**Con datos de negocio adicionales:**
-
-- **Customer Lifetime Value (CLV)** como peso en la funcion de perdida: no todos los churners valen igual. Un cliente con alto CLV deberia tener mayor prioridad de retencion aunque su probabilidad de churn sea similar a la de otro de bajo valor.
-- **Calibracion del umbral por segmento:** segun la capacidad de visitas del equipo comercial y el coste de retencion por tipo de cliente, el umbral optimo puede variar entre segmentos.
-- **Experimentos A/B:** para medir el impacto real de las acciones de retencion y separar el efecto causal del modelo del simple comportamiento natural del cliente.
+Proximas mejoras naturales: capacity-aware thresholding, enriquecimiento de anomalias, y survival con historico longitudinal real (si aparece panel temporal).
