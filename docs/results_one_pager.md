@@ -1,6 +1,11 @@
 # One-pager — Telco Churn Scoring
 
-Resumen ejecutivo del caso de uso. Detalle tecnico en [`churn_case_deep_dive.md`](churn_case_deep_dive.md).
+## El gancho
+
+**Planteamiento:** no puedes visitar a los 7k clientes; llamar al azar quema presupuesto de retencion.  
+**Resultado:** un ranking comercial donde el **top 20%** captura ~**51%** de los churners (**2.5×** vs aleatorio).
+
+Resumen ejecutivo del caso. Detalle tecnico en [`churn_case_deep_dive.md`](churn_case_deep_dive.md).
 
 ---
 

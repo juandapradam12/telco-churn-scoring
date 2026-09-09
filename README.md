@@ -1,12 +1,23 @@
 # Telco Churn Scoring — Deep Dive
 
-Clasificacion calibrada, lift/gains y priorizacion comercial unificada
-(clasificacion + potencial de upsell + anomalias de facturacion).
-
 **Autor:** Juan Prada
 
-> **GitHub description** (About → gear icon):
-> `Turn telco customer data into an actionable sales playbook: who to retain, who to upsell, and who needs a billing check—ranked by calibrated risk and timing.`
+---
+
+## The story (GitHub About)
+
+> **Planteamiento:** la fuerza comercial no puede llamar a todo el mundo — y llamar al azar desperdicia el presupuesto de retencion.  
+> **Resultado:** un ranking accionable (retener / upsell / revisar facturacion) donde contactar el **top 20%** captura ~**51%** de los churners (**2.5×** vs aleatorio).
+
+**Description para GitHub** (About → ⚙️):
+```text
+Most sales teams call the wrong customers. This project turns telco data into a ranked playbook—retain, upsell, or investigate—where the top 20% captures ~51% of churners (2.5× random).
+```
+
+Alternativa mas corta:
+```text
+Stop calling customers at random. Rank who to retain, upsell, or investigate—top 20% of the list captures ~51% of churners (2.5× better than chance).
+```
 
 ---
 
@@ -16,11 +27,11 @@ Proyecto de machine learning aplicado a negocio sobre el dataset
 [Telco Customer Churn (Kaggle)](https://www.kaggle.com/blastchar/telco-customer-churn):
 
 - **26.5% churn** → desbalanceo moderado (accuracy no es valida)
-- Objetivo: scoring calibrado por cliente para priorizar acciones comerciales
-- Tres casos + un score unificado con playbooks operativos
+- Objetivo: scoring calibrado + urgencia temporal para priorizar acciones comerciales
+- Tres casos + survival + un score unificado con playbooks operativos
 
 Brief del proyecto: [`docs/Enunciado_Proyecto_ML.pdf`](docs/Enunciado_Proyecto_ML.pdf)  
-One-pager de resultados: [`docs/results_one_pager.md`](docs/results_one_pager.md)  
+One-pager: [`docs/results_one_pager.md`](docs/results_one_pager.md)  
 Ejemplo Cliente A vs B: [`docs/example_client_a_vs_b.md`](docs/example_client_a_vs_b.md)  
 Detalle tecnico: [`docs/churn_case_deep_dive.md`](docs/churn_case_deep_dive.md)
 

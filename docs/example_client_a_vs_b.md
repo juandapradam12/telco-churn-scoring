@@ -6,14 +6,14 @@ Como se lee el scoring en una decision de fuerza de ventas.
 
 ## Descripcion del proyecto (GitHub / About)
 
-**English (recomendada):**
+**Storytelling (recomendada):**
 ```text
-Turn telco customer data into an actionable sales playbook: who to retain, who to upsell, and who needs a billing check—ranked by calibrated risk and timing.
+Most sales teams call the wrong customers. This project turns telco data into a ranked playbook—retain, upsell, or investigate—where the top 20% captures ~51% of churners (2.5× random).
 ```
 
-**Español (alternativa):**
+**Mas corta:**
 ```text
-Convierte datos de clientes telecom en una cola comercial accionable: a quién retener, a quién hacer upsell y a quién revisar facturación, priorizado por riesgo calibrado y urgencia temporal.
+Stop calling customers at random. Rank who to retain, upsell, or investigate—top 20% of the list captures ~51% of churners (2.5× better than chance).
 ```
 
 ---
