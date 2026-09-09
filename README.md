@@ -1,40 +1,51 @@
-# H&K Prueba Tecnica — ML Engineer
-### Clasificacion de Churn y Priorizacion Comercial
+# Telco Churn Scoring — Deep Dive
+### Clasificacion calibrada, lift/gains y priorizacion comercial unificada
 
 **Autor:** Juan Prada · **Fecha:** Abril 2026
+
+> **Descripcion sugerida para GitHub** (actualizar manualmente en Settings → General):
+> `Deep dive de churn scoring: calibración, lift/gains, umbral por costes y priorización comercial unificada (clasificación + potencial + anomalías)`
 
 ---
 
 ## Contexto
 
-Prueba tecnica para el rol de ML Engineer en H&K. El caso implementado es prediccion de churn (clasificacion binaria) sobre un dataset de clientes de telecomunicaciones. El objetivo es generar un scoring de riesgo por cliente que permita priorizar las visitas de la fuerza comercial en campo.
+Caso tecnico de ML sobre prediccion de churn (clasificacion binaria) en clientes de telecomunicaciones.
+El objetivo no es solo predecir, sino producir un **scoring calibrado** y una **priorizacion comercial**
+accionable (retencion + upsell + alertas de facturacion).
+
+El dataset esta **desbalanceado (~26.5% churn)**: accuracy no es una metrica valida.
 
 ---
 
 ## Estructura del proyecto
 
 ```
-hk-prueba-tecnica-ml/
+telco-churn-scoring/
 ├── docs/
-│   └── Prueba_Tecnica_ML_Engineer.pdf  # Enunciado original de la prueba
+│   ├── Prueba_Tecnica_ML_Engineer.pdf
+│   └── churn_case_deep_dive.md
 ├── data/
-│   └── telco_churn.csv             # Dataset Telco Customer Churn (Kaggle)
+│   └── telco_churn.csv
 ├── src/
-│   ├── data/
-│   │   └── loader.py               # Carga y validacion de datos
-│   ├── features/
-│   │   └── engineering.py          # Preprocesamiento y feature engineering
+│   ├── data/loader.py
+│   ├── features/engineering.py
 │   ├── models/
-│   │   └── train.py                # Entrenamiento, evaluacion y serializacion
-│   └── visualization/
-│       └── plots.py                # Visualizaciones reutilizables
+│   │   ├── train.py          # calibracion, costes, scoring
+│   │   ├── tuning.py         # RandomizedSearchCV
+│   │   └── lift.py           # lift / gains / deciles
+│   ├── cases/
+│   │   ├── commercial_potential.py   # Case 2 regresion
+│   │   ├── anomaly_detection.py      # Case 3 Isolation Forest
+│   │   └── unified_scoring.py        # score comercial unificado
+│   └── visualization/plots.py
 ├── notebooks/
-│   └── churn_analysis.ipynb        # Notebook narrativo con explicaciones
+│   └── churn_analysis.ipynb
 ├── output/
-│   ├── models/                     # Modelos serializados (.pkl)
-│   ├── figures/                    # Graficas (.png)
-│   └── reports/                    # Metricas y scoring (.csv)
-├── main.py                         # Pipeline ejecutable end-to-end
+│   ├── models/
+│   ├── figures/
+│   └── reports/
+├── main.py
 ├── requirements.txt
 └── README.md
 ```
