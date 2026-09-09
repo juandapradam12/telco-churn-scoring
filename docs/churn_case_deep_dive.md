@@ -178,3 +178,25 @@ Carpetas:
 python3 main.py
 ```
 
+
+
+---
+
+## 11) Survival analysis — ¿hay estructura?
+
+**Si, de forma aproximada**, sin datos externos:
+
+| Campo | Uso en survival |
+|-------|-----------------|
+| `tenure` | tiempo hasta evento (meses) |
+| `Churn` | evento (1) / censurado (0) |
+
+Se puede implementar Kaplan–Meier (curvas por contrato/servicios) y Cox PH (hazard ratios).
+
+**Caveats importantes:**
+- El dataset es un **snapshot transversal**, no un panel longitudinal con fechas de calendario.
+- Los no-churners estan **right-censored** en su tenure actual.
+- No hay left-truncation / historico de cambios de plan mes a mes.
+- Por tanto survival aqui responde "riesgo relativo en el tiempo de vida observado", no forecasting calendario puro.
+
+Conclusión: es la siguiente capa natural del repo; no bloquea por falta de columnas, pero hay que narrar bien las limitaciones.
