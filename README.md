@@ -6,7 +6,7 @@ Clasificacion calibrada, lift/gains y priorizacion comercial unificada
 **Autor:** Juan Prada
 
 > **GitHub description** (About → gear icon):
-> `Deep-dive churn scoring: calibration, lift/gains, cost-based thresholds, survival analysis, and unified commercial prioritization (classification + upsell + anomalies)`
+> `Turn telco customer data into an actionable sales playbook: who to retain, who to upsell, and who needs a billing check—ranked by calibrated risk and timing.`
 
 ---
 
@@ -21,6 +21,7 @@ Proyecto de machine learning aplicado a negocio sobre el dataset
 
 Brief del proyecto: [`docs/Enunciado_Proyecto_ML.pdf`](docs/Enunciado_Proyecto_ML.pdf)  
 One-pager de resultados: [`docs/results_one_pager.md`](docs/results_one_pager.md)  
+Ejemplo Cliente A vs B: [`docs/example_client_a_vs_b.md`](docs/example_client_a_vs_b.md)  
 Detalle tecnico: [`docs/churn_case_deep_dive.md`](docs/churn_case_deep_dive.md)
 
 ---
