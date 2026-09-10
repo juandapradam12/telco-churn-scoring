@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mini demo de 2 minutos: gancho + lift + Cliente A vs B."""
+"""2-minute demo: pitch + lift + Client A vs B."""
 from pathlib import Path
 
 import pandas as pd
@@ -28,7 +28,7 @@ def main():
     if lift_path and lift_path.exists():
         lift = pd.read_csv(lift_path)
         row10 = lift.iloc[0]
-        # fila mas cercana a 20% de clientes contactados
+        # row closest to 20% of customers contacted
         row20 = lift.iloc[(lift["cumulative_customers"] - 0.20).abs().argmin()]
         print("LIFT (holdout)")
         print(

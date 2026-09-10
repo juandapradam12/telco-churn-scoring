@@ -1,70 +1,70 @@
-# Demo de 2 minutos — Telco Churn Scoring
+# 2-minute demo — Telco Churn Scoring
 
-Script oral + comandos. Objetivo: contar el caso sin entrar en todo el pipeline.
-
----
-
-## 0:00–0:20 · Gancho
-
-> Most sales teams call the wrong customers.
-> Aqui el ranking no es “un modelo mas”: es una cola comercial.
-> **Resultado:** contactar el top 20% captura ~51% de los churners (**2.5×** vs aleatorio).
-
-Abrir: `README.md` (seccion *The story*) o la About del repo.
+Speaking script + commands. Goal: tell the story without walking the full pipeline.
 
 ---
 
-## 0:20–0:50 · Planteamiento
+## 0:00–0:20 · Hook
 
-- Dataset telecom, **26.5% churn** → accuracy engaña.
-- Pregunta de negocio: ¿a quién visitamos primero?
-- No basta *si* se va: hace falta *cuándo* y *qué hacer*.
+> Most sales teams call the wrong customers.  
+> This ranking is not “one more model”: it is a sales queue.  
+> **Result:** contacting the top 20% captures ~51% of churners (**2.5×** vs random).
 
-Mostrar: `output/figures/lift_gains.png`
-
-Frase clave: “El lift convierte ML en capacidad de visitas.”
+Open: root `README.md` (pitch) or the repo About section.
 
 ---
 
-## 0:50–1:20 · Como se decide (Cliente A vs B)
+## 0:20–0:50 · Problem framing
 
-Abrir: `docs/example_client_a_vs_b.md`
+- Telecom dataset, **26.5% churn** → accuracy misleads.
+- Business question: who do we visit first?
+- *Whether* they leave is not enough: we also need *when* and *what to do*.
+
+Show: `output/figures/lift_gains.png`
+
+Key line: “Lift turns ML into visit capacity.”
+
+---
+
+## 0:50–1:20 · How decisions are made (Client A vs B)
+
+Open: `docs/example_client_a_vs_b.md`
 
 | | A `3750-CKVKH` | B `9560-BBZXK` |
 |--|--|--|
-| Riesgo 12m | ~52% | ~2% |
+| 12m risk | ~52% | ~2% |
 | Playbook | Retain_HighValue | Grow_Upsell |
 
-> **A = apaga incendio.** **B = vende mas.**
+> **A = put out the fire.** **B = sell more.**
 
-Opcional: `output/figures/survival_kaplan_meier.png` (mes a mes vs contrato largo).
-
----
-
-## 1:20–1:50 · Que hay debajo (sin deep dive)
-
-Una frase por capa:
-1. Clasificacion calibrada + umbral por costes
-2. Survival (urgencia temporal)
-3. Upsell + anomalias
-4. Score unificado → playbooks
-
-Mostrar: `output/reports/unified_commercial_scoring.csv` (top filas)  
-o `output/figures/unified_commercial_scoring.png`
+Optional: `output/figures/survival_kaplan_meier.png` (month-to-month vs longer contracts).
 
 ---
 
-## 1:50–2:00 · Cierre
+## 1:20–1:50 · What sits underneath (no deep dive)
 
-> No es un leaderboard de F1: es un sistema que dice **a quién llamar y para qué**.
+One sentence per layer:
+1. Calibrated classification + cost-based threshold
+2. Survival (timing urgency)
+3. Upsell + anomalies
+4. Unified score → playbooks
+
+Show: `output/reports/unified_commercial_scoring.csv` (top rows)  
+or `output/figures/unified_commercial_scoring.png`
+
+---
+
+## 1:50–2:00 · Close
+
+> This is not an F1 leaderboard: it is a system that says **who to call and why**.  
 > Notebook: `notebooks/churn_analysis.ipynb` · Pipeline: `python3 main.py`
 
 ---
 
-## Comando rapido (opcional en vivo)
+## Optional live command
 
 ```bash
 python3 scripts/demo_2min.py
 ```
 
-Imprime lift top 20%, A vs B y el gancho en consola.
+Prints lift top 20%, A vs B, and the pitch in the terminal.

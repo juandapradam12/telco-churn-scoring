@@ -1,8 +1,8 @@
-# Deep dive técnico (legacy pointer)
+# Technical deep dive (legacy pointer)
 
-Este documento se consolidó en la documentación estructurada:
+This document was consolidated into the structured docs:
 
 - [02 — Methodology](02_methodology.md)
 - [03 — Results](03_results.md)
 
-Índice completo: [docs/README.md](README.md)
+Full index: [docs/README.md](README.md)

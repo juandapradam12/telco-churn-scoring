@@ -1,149 +1,149 @@
 # 02 — Methodology
 
-## Datos
+## Data
 
-| Campo clave | Uso |
-|-------------|-----|
-| `Churn` | Target binario (`Yes`/`No`) |
-| `tenure` | Antigüedad (meses) y **tiempo** en survival |
-| `MonthlyCharges` / `TotalCharges` | Facturación |
-| Servicios / contrato / pago | Predictores categóricos |
+| Key field | Role |
+|-----------|------|
+| `Churn` | Binary target (`Yes`/`No`) |
+| `tenure` | Tenure in months and **time** in survival |
+| `MonthlyCharges` / `TotalCharges` | Billing |
+| Services / contract / payment | Categorical predictors |
 
-Notas de calidad:
+Data-quality notes:
 
-- `TotalCharges` llega como string; se convierte a numérico.
-- Clientes con `tenure = 0` tienen `TotalCharges` vacío → imputación a `0`.
-- Churn rate ≈ **26.5%** (desbalanceo moderado).
+- `TotalCharges` arrives as a string; converted to numeric.
+- Customers with `tenure = 0` have empty `TotalCharges` → imputed to `0`.
+- Churn rate ≈ **26.5%** (moderate imbalance).
 
 ## Feature engineering
 
 ### Encoding
 
 - Yes/No → `0/1`
-- Multi-categoría → one-hot (`drop_first=True`)
-- `customerID` se preserva para scoring (no entra al modelo)
+- Multi-category → one-hot (`drop_first=True`)
+- `customerID` kept for scoring (not used as a model feature)
 
-### Features de negocio
+### Business features
 
-- Indicadores `has_*` de servicios adicionales
-- Agregados: `num_additional_services`, protección, streaming
-- Facturación:
+- Service indicators `has_*`
+- Aggregates: `num_additional_services`, protection, streaming
+- Billing:
   - `charge_ratio`
   - `deviation_from_expected`
   - `avg_monthly_charge`
   - `log_monthly_charges` / `log_total_charges`
 
-## Validación: train / val / test
+## Validation: train / val / test
 
 ```text
-100% datos
+100% data
  ├── 60% train   → fit + hyperparameter tuning
- ├── 20% val     → calibración + umbrales
- └── 20% test    → métricas finales + lift
+ ├── 20% val     → calibration + thresholds
+ └── 20% test    → final metrics + lift
 ```
 
-Todo estratificado por churn.  
-Así se evita el error clásico de “tunear mirando test”.
+All splits are stratified by churn.  
+This avoids the classic mistake of “tuning while looking at test”.
 
-## Case 1 — Clasificación de churn
+## Case 1 — Churn classification
 
-### Modelos
+### Models
 
-- Logistic Regression (baseline interpretable, con scaler)
+- Logistic Regression (interpretable baseline, with scaler)
 - Random Forest
-- XGBoost (si disponible)
+- XGBoost (when available)
 
-### Desbalanceo
+### Class imbalance
 
 - `class_weight="balanced"` (sklearn)
 - `scale_pos_weight ≈ n_neg / n_pos` (XGBoost)
-- **No SMOTE** por defecto: desbalanceo moderado + muchas categóricas
+- **No SMOTE** by default: moderate imbalance + many categorical variables
 
-### Calibración
+### Calibration
 
-- `CalibratedClassifierCV` (método sigmoid / Platt)
-- Métricas de calidad probabilística: **Brier**, **ECE**
+- `CalibratedClassifierCV` (sigmoid / Platt scaling)
+- Probability-quality metrics: **Brier**, **ECE**
 
-### Umbrales
+### Thresholds
 
-1. **Óptimo F1** (con constraint de recall en val)
-2. **Por costes:** minimiza `FP × cost_fp + FN × cost_fn`  
+1. **F1-optimal** (with recall constraint on val)
+2. **Cost-based:** minimize `FP × cost_fp + FN × cost_fn`  
    (default: `cost_fn = 5 × cost_fp`)
-3. **Tiers de riesgo** alineados a objetivos de recall en val  
-   (no cortes fijos 0.3/0.6)
+3. **Risk tiers** aligned to recall targets on val  
+   (not hard-coded 0.3/0.6 cuts)
 
-### Métricas principales
+### Primary metrics
 
-| Métrica | Por qué |
-|---------|---------|
-| F1 | Equilibra FP/FN con desbalanceo |
-| PR-AUC | Mejor que ROC cuando la clase positiva es minoritaria |
-| ROC-AUC | Discriminación global |
-| Recall | Captura de churners (negocio) |
-| Brier / ECE | Fiabilidad del score como probabilidad |
+| Metric | Why |
+|--------|-----|
+| F1 | Balances FP/FN under imbalance |
+| PR-AUC | More informative than ROC when positives are minority |
+| ROC-AUC | Overall discrimination |
+| Recall | Churner capture (business) |
+| Brier / ECE | Reliability of the score as a probability |
 
-## Case 2 — Potencial comercial (regresión)
+## Case 2 — Commercial potential (regression)
 
-Target construido:
+Constructed target:
 
 ```text
 monthly_potential = P75(MonthlyCharges | Contract, InternetService) − MonthlyCharges
 ```
 
-(clip a ≥ 0)
+(clipped at ≥ 0)
 
-Modelos: Ridge (baseline) + XGBoost Regressor.  
-Métricas: MAE, RMSE, R².
+Models: Ridge (baseline) + XGBoost Regressor.  
+Metrics: MAE, RMSE, R².
 
-## Case 3 — Anomalías de facturación
+## Case 3 — Billing anomalies
 
-- **Isolation Forest** (no supervisado; no usa `Churn` como input)
-- Features orientadas a rareza de facturación / precio vs servicios
-- Validación exploratoria: Precision@K vs base rate de churn  
-  (útil como chequeo, **no** como objetivo principal)
+- **Isolation Forest** (unsupervised; does not use `Churn` as input)
+- Features oriented to billing rarity / price vs services
+- Exploratory check: Precision@K vs churn base rate  
+  (useful as a sanity check, **not** the main objective)
 
 ## Case 4 — Survival analysis
 
-| Campo | Rol |
-|-------|-----|
-| `tenure` | duración (tiempo hasta evento) |
-| `Churn` | evento (1) / censurado (0) |
+| Field | Role |
+|-------|------|
+| `tenure` | duration (time to event) |
+| `Churn` | event (1) / censored (0) |
 
-### Modelos
+### Models
 
-- **Kaplan–Meier:** curva de supervivencia global y por `Contract` (+ log-rank)
+- **Kaplan–Meier:** global survival curve and by `Contract` (+ log-rank)
 - **Cox PH:** hazard ratios + concordance
-- Scoring: `P(churn antes de t) = 1 − S(t | X)` para t = 6, 12, 24 meses
+- Scoring: `P(churn before t) = 1 − S(t | X)` for t = 6, 12, 24 months
 
-### Caveats (importante narrarlos)
+### Caveats (important to narrate)
 
-- Dataset **snapshot**, no panel longitudinal con fechas de calendario
-- No-churners están **right-censored** en su tenure actual
-- Interpreta riesgo relativo en el tiempo de vida observado
+- Dataset is a **snapshot**, not a longitudinal panel with calendar dates
+- Non-churners are **right-censored** at their current tenure
+- Interprets relative risk over observed lifetime, not pure calendar forecasting
 
-## Score comercial unificado
+## Unified commercial score
 
-Pesos por defecto:
+Default weights:
 
-| Señal | Peso |
-|-------|-----:|
+| Signal | Weight |
+|--------|-------:|
 | Churn score | 0.50 |
-| Potencial upsell | 0.30 |
-| Anomalía | 0.20 |
+| Upsell potential | 0.30 |
+| Anomaly | 0.20 |
 
-Genera:
+Produces:
 
 - `commercial_priority_score`
 - `commercial_segment` (playbook)
 - `recommended_action`
 
-Detalle de segmentos en [04 — Business playbook](04_business_playbook.md).
+Segment detail: [04 — Business playbook](04_business_playbook.md).
 
-## Interpretabilidad
+## Interpretability
 
-- Feature importance (árboles)
-- SHAP summary (cuando aplica)
+- Feature importance (tree models)
+- SHAP summary (when applicable)
 
-## Siguiente lectura
+## Next
 
 → [03 — Results](03_results.md)
