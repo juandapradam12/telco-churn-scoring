@@ -36,12 +36,6 @@ This is not “just a classifier”. It is a **commercial prioritization system*
 4. **Timing:** survival adds urgency, not only static risk.
 5. **Action:** the unified score turns ML into playbooks (`Retain_HighValue`, `Grow_Upsell`, …).
 
-## Who this repo is for
-
-- Portfolio / deep technical case studies
-- Data scientists who want a defendable end-to-end story
-- Business stakeholders who need a prioritized queue, not an isolated AUC
-
 ## Next
 
 → [02 — Methodology](02_methodology.md)
