@@ -1,5 +1,7 @@
 # One-pager — Telco Churn Scoring
 
+> Documentación completa: [`docs/README.md`](README.md)
+
 ## El gancho
 
 **Planteamiento:** no puedes visitar a los 7k clientes; llamar al azar quema presupuesto de retencion.  
