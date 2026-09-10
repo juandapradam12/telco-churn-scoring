@@ -1,5 +1,7 @@
 # Telco Churn Scoring — Deep Dive
 
+[![CI](https://github.com/juandapradam12/telco-churn-scoring/actions/workflows/ci.yml/badge.svg)](https://github.com/juandapradam12/telco-churn-scoring/actions/workflows/ci.yml)
+
 **Autor:** Juan Prada
 
 ---
@@ -92,6 +94,19 @@ Notebook narrativo:
 
 ```bash
 jupyter notebook notebooks/churn_analysis.ipynb
+```
+
+### CI (GitHub Actions)
+
+En cada push/PR el workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre:
+1. **Unit tests** — `pytest tests/`
+2. **Pipeline smoke** — `scripts/ci_smoke.py` (camino critico acelerado)
+3. **Demo** — `scripts/demo_2min.py`
+
+Localmente:
+```bash
+python3 -m pytest -q tests/
+python3 scripts/ci_smoke.py
 ```
 
 ### Artefactos principales
