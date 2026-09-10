@@ -1,63 +1,63 @@
-# Ejemplo comercial: Cliente A vs Cliente B
+# Commercial example: Client A vs Client B
 
-Como se lee el scoring en una decision de fuerza de ventas.
+How to read the scoring as a field-sales decision.
 
 ---
 
-## Descripcion del proyecto (GitHub / About)
+## Project description (GitHub / About)
 
-**Storytelling (recomendada):**
+**Storytelling (recommended):**
 ```text
 Most sales teams call the wrong customers. This project turns telco data into a ranked playbook—retain, upsell, or investigate—where the top 20% captures ~51% of churners (2.5× random).
 ```
 
-**Mas corta:**
+**Shorter:**
 ```text
 Stop calling customers at random. Rank who to retain, upsell, or investigate—top 20% of the list captures ~51% of churners (2.5× better than chance).
 ```
 
 ---
 
-## Los dos perfiles
+## The two profiles
 
-| | **Cliente A — `3750-CKVKH`** | **Cliente B — `9560-BBZXK`** |
+| | **Client A — `3750-CKVKH`** | **Client B — `9560-BBZXK`** |
 |--|--|--|
-| Antiguedad | 2 meses | 36 meses |
-| Contrato | Month-to-month | Two year |
-| Internet | Fiber optic | (estable / bajo riesgo) |
-| Factura mensual | ~€68 | — |
-| **Churn score (clasificacion)** | **0.61** (High) | **0.08** (Low) |
-| **P(churn en 12 meses)** survival | **51.6%** | **1.7%** |
-| Potencial upsell | ~€26/mes | ~€52/mes |
-| Segmento unificado | **Retain_HighValue** | **Grow_Upsell** |
-| Que paso en realidad | Churn = Yes | Churn = No |
+| Tenure | 2 months | 36 months |
+| Contract | Month-to-month | Two year |
+| Internet | Fiber optic | (stable / low risk) |
+| Monthly bill | ~€68 | — |
+| **Churn score (classification)** | **0.61** (High) | **0.08** (Low) |
+| **P(churn in 12 months)** survival | **51.6%** | **1.7%** |
+| Upsell potential | ~€26/month | ~€52/month |
+| Unified segment | **Retain_HighValue** | **Grow_Upsell** |
+| Actual outcome | Churn = Yes | Churn = No |
 
 ---
 
-## Que implica para el equipo comercial
+## What this means for the sales team
 
-### Cliente A — retener YA
-No basta con “tiene riesgo alto”. Survival dice que **en los proximos 12 meses tiene ~52% de probabilidad de irse**, y ademas es cliente nuevo en fibra mes a mes (el perfil de mayor hazard).
+### Client A — retain NOW
+“High risk” is not enough. Survival says there is a **~52% chance of churn within 12 months**, and this is a new fiber month-to-month customer (highest-hazard profile).
 
-**Accion:** visita urgente + oferta de retencion personalizada (idealmente pasar a contrato anual) **antes** de que se complete el ciclo de fuga.
-Es un caso `Retain_HighValue`: riesgo alto **y** potencial relevante (~€26).
+**Action:** urgent visit + personalized retention offer (ideally move to an annual contract) **before** churn completes.  
+This is `Retain_HighValue`: high risk **and** meaningful potential (~€26).
 
-### Cliente B — no gastar retencion; empujar crecimiento
-Churn score bajo y survival a 12m ~**2%**: no es prioridad de retencion.
-Pero tiene **alto potencial de upsell (~€52)**.
+### Client B — do not spend retention; push growth
+Low churn score and ~**2%** 12-month survival risk: not a retention priority.  
+But upsell potential is **high (~€52)**.
 
-**Accion:** campana de ampliacion de servicios / upgrade. Segmento `Grow_Upsell`.
-Gastar una visita de “rescate” aqui seria ineficiente.
+**Action:** expansion / upgrade campaign. Segment `Grow_Upsell`.  
+Spending a “rescue” visit here is inefficient.
 
 ---
 
-## Lectura en una frase
+## One-line reading
 
-> **A** es “apaga el incendio y salva valor”.  
-> **B** es “no hay incendio: vende mas”.
+> **A** is “put out the fire and save value”.  
+> **B** is “no fire: sell more”.
 
-Eso es lo que aporta combinar:
-1. probabilidad de churn calibrada,
-2. urgencia temporal (survival),
-3. potencial comercial,
-en un solo playbook.
+That is the value of combining:
+1. calibrated churn probability,
+2. timing urgency (survival),
+3. commercial potential,
+into one playbook.

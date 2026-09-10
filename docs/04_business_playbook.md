@@ -1,70 +1,70 @@
 # 04 — Business playbook
 
-Cómo se usa el sistema en operación comercial.
+How to use the system in commercial operations.
 
 ---
 
-## De scores a acciones
+## From scores to actions
 
-El modelo no “decide solo”. Produce señales que se traducen en playbooks:
+The model does not “decide alone”. It produces signals that map to playbooks:
 
-| Segmento | Señales típicas | Acción |
-|----------|-----------------|--------|
-| `Retain_HighValue` | Alto churn + alto potencial | Retención urgente + oferta personalizada |
-| `Retain_InvestigateBill` | Alto churn + anomalía | Retención + revisión de facturación |
-| `Retain_Urgent` | Alto churn | Visita urgente de retención |
-| `Nurture_Upsell` | Churn medio + alto potencial | Contacto proactivo + ampliación |
-| `Grow_Upsell` | Bajo churn + alto potencial | Campaña de upsell / cross-sell |
-| `Investigate_Billing` | Anomalía sin churn alto | Revisión de facturación / condiciones |
-| `Maintain` | Bajo riesgo / bajo potencial | Comunicación periódica |
+| Segment | Typical signals | Action |
+|---------|-----------------|--------|
+| `Retain_HighValue` | High churn + high potential | Urgent retention + personalized offer |
+| `Retain_InvestigateBill` | High churn + anomaly | Retention + billing review |
+| `Retain_Urgent` | High churn | Urgent retention visit |
+| `Nurture_Upsell` | Medium churn + high potential | Proactive contact + expansion offer |
+| `Grow_Upsell` | Low churn + high potential | Upsell / cross-sell campaign |
+| `Investigate_Billing` | Anomaly without high churn | Billing / special-conditions review |
+| `Maintain` | Low risk / low potential | Periodic communication |
 
-Archivo operativo: `output/reports/unified_commercial_scoring.csv`
+Operational file: `output/reports/unified_commercial_scoring.csv`
 
 ---
 
-## Ejemplo concreto: Cliente A vs Cliente B
+## Concrete example: Client A vs Client B
 
 | | **A — `3750-CKVKH`** | **B — `9560-BBZXK`** |
 |--|--|--|
-| Perfil | 2 meses, fiber, mes a mes | 36 meses, contrato 2 años |
+| Profile | 2 months, fiber, month-to-month | 36 months, two-year contract |
 | Churn score | ~0.61 (High) | ~0.08 (Low) |
-| P(churn en 12m) | **~52%** | **~2%** |
-| Potencial upsell | ~€26/mes | ~€52/mes |
-| Segmento | **Retain_HighValue** | **Grow_Upsell** |
-| Realidad en datos | Churn = Yes | Churn = No |
+| P(churn in 12m) | **~52%** | **~2%** |
+| Upsell potential | ~€26/month | ~€52/month |
+| Segment | **Retain_HighValue** | **Grow_Upsell** |
+| Actual outcome | Churn = Yes | Churn = No |
 
-### Lectura comercial
+### Commercial reading
 
-- **A** = apaga el incendio (y salva valor): retención ya.
-- **B** = no gastes retención: empuja crecimiento.
+- **A** = put out the fire (and save value): retain now.
+- **B** = do not spend retention budget: push growth.
 
-Más detalle: [example_client_a_vs_b.md](example_client_a_vs_b.md)
-
----
-
-## Cómo priorizar con capacidad limitada
-
-1. Ordenar por `commercial_priority_score` (o por `churn_prob_within_12m` si solo importa urgencia).
-2. Tomar el top según capacidad de visitas del equipo.
-3. Aplicar el playbook del `commercial_segment`.
-
-Regla práctica del lift:
-
-> Si solo puedes contactar el **20%**, el ranking captura ~**51%** de churners (**2.5×** vs aleatorio).
+More detail: [example_client_a_vs_b.md](example_client_a_vs_b.md)
 
 ---
 
-## Qué mirar en una reunión de negocio (5 min)
+## How to prioritize with limited capacity
 
-1. `lift_gains.png` — ¿el ranking vale la pena?
-2. Top de `unified_commercial_scoring.csv` — ¿quién entra hoy?
-3. Cliente A vs B — ¿se entiende la lógica de acción?
-4. Kaplan–Meier por contrato — ¿por qué mes a mes es urgente?
+1. Sort by `commercial_priority_score` (or by `churn_prob_within_12m` if only urgency matters).
+2. Take the top slice matching team visit capacity.
+3. Apply the playbook from `commercial_segment`.
 
-Guion oral: [demo_2min.md](demo_2min.md)
+Practical lift rule:
+
+> If you can only contact the **top 20%**, the ranking captures ~**51%** of churners (**2.5×** vs random).
 
 ---
 
-## Siguiente lectura
+## What to show in a 5-minute business meeting
+
+1. `lift_gains.png` — is the ranking worth it?
+2. Top of `unified_commercial_scoring.csv` — who enters today’s queue?
+3. Client A vs B — is the action logic clear?
+4. Kaplan–Meier by contract — why month-to-month is urgent?
+
+Speaking script: [demo_2min.md](demo_2min.md)
+
+---
+
+## Next
 
 → [05 — Developer guide](05_developer_guide.md)

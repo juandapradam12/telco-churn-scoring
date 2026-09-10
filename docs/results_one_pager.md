@@ -1,61 +1,60 @@
 # One-pager — Telco Churn Scoring
 
-> Documentación completa: [`docs/README.md`](README.md)
+> Full documentation: [`docs/README.md`](README.md)
 
-## El gancho
+## The pitch
 
-**Planteamiento:** no puedes visitar a los 7k clientes; llamar al azar quema presupuesto de retencion.  
-**Resultado:** un ranking comercial donde el **top 20%** captura ~**51%** de los churners (**2.5×** vs aleatorio).
-
-Resumen ejecutivo del caso. Detalle tecnico en [`churn_case_deep_dive.md`](churn_case_deep_dive.md).
+**Problem:** you cannot visit all ~7k customers; calling at random burns retention budget.  
+**Result:** a commercial ranking where the **top 20%** captures ~**51%** of churners (**2.5×** vs random).
 
 ---
 
-## Problema
+## Problem
 
-Priorizar la fuerza comercial sobre ~7k clientes telecom con **26.5% churn**.
-Accuracy engaña: predecir siempre “No Churn” da ~73% sin detectar a nadie.
+Prioritize a sales force over ~7k telecom customers with **26.5% churn**.  
+Accuracy misleads: always predicting “No Churn” gets ~73% without detecting anyone.
 
-## Enfoque
+## Approach
 
-| Capa | Que hace |
-|------|----------|
-| Case 1 — Clasificacion | Probabilidad de churn calibrada + tiers dinamicos |
-| Case 2 — Regresion | Potencial de upsell (€/mes) |
-| Case 3 — Anomalias | Rareza de facturacion (Isolation Forest) |
-| Unificado | Ranking comercial con playbooks |
+| Layer | What it does |
+|-------|--------------|
+| Case 1 — Classification | Calibrated churn probability + dynamic tiers |
+| Case 2 — Regression | Upsell potential (€/month) |
+| Case 3 — Anomalies | Billing rarity (Isolation Forest) |
+| Case 4 — Survival | Timing risk (KM + Cox) |
+| Unified | Commercial ranking with playbooks |
 
-Validacion: **train / val / test**. Tuning solo en train. Calibracion y umbrales en val. Metricas finales en test.
+Validation: **train / val / test**. Tuning on train only. Calibration/thresholds on val. Final metrics on test.
 
-## Resultados (holdout)
+## Results (holdout)
 
-**Mejor modelo:** RandomForest — F1 **0.66** | ROC-AUC **0.86** | PR-AUC **0.68** | ECE **0.016**
+**Best model:** RandomForest — F1 **0.66** | ROC-AUC **0.86** | PR-AUC **0.68** | ECE **0.016**
 
-**Lift (negocio):**
+**Lift (business):**
 
-| Si contactas… | Capturas… de churners | vs aleatorio |
-|---------------|----------------------:|-------------:|
+| If you contact… | You capture… of churners | vs random |
+|-----------------|-------------------------:|----------:|
 | Top 10% | 28% | **2.85x** |
 | Top 20% | 51% | **2.55x** |
 | Top 30% | 69% | **2.30x** |
 
-**Costes:** con `cost(FN)=5 × cost(FP)`, umbral optimo ~**0.21** (no 0.5).
+**Costs:** with `cost(FN)=5 × cost(FP)`, optimal threshold ~**0.21** (not 0.5).
 
 **Case 2:** XGBoost Regressor MAE ≈ 0.33 | R² ≈ 0.997  
-**Survival:** Cox concordance ≈ 0.83; Month-to-month HR ≈ 9.2x; riesgo a 12m por cliente  
-**Unificado:** segmentos `Retain_HighValue`, `Retain_Urgent`, `Grow_Upsell`, etc.
+**Survival:** Cox concordance ≈ 0.83; Month-to-month HR ≈ 9.2x; 12-month risk per customer  
+**Unified:** segments `Retain_HighValue`, `Retain_Urgent`, `Grow_Upsell`, etc.
 
-## Por que importa
+## Why it matters
 
-El output no es solo un modelo: es una **cola accionable** (retencion, upsell, revision de facturacion) con score interpretable como probabilidad — y survival añade *cuándo* (horizonte 6/12/24m), no solo *si*.
+The output is not only a model: it is an **actionable queue** (retention, upsell, billing review) with a score readable as a probability — and survival adds *when* (6/12/24m horizon), not only *if*.
 
-## Limitaciones
+## Limitations
 
-- Datos de snapshot (no historico mes a mes) → survival usa `tenure` + censoring
-- Anomalias ≠ churn (Precision@K ~ base rate)
-- Sin experimento A/B de impacto causal
+- Snapshot data (not month-by-month history) → survival uses `tenure` + censoring
+- Anomalies ≠ churn (Precision@K ~ base rate)
+- No A/B experiment for causal impact
 
-## Ya implementado (capa survival)
+## Survival layer (implemented)
 
-Kaplan–Meier (global + por Contract) y Cox PH sobre `tenure` / `Churn`.
-Artefactos: `survival_kaplan_meier.png`, `survival_cox_hazard_ratios.csv`, `survival_risk_scoring.csv`.
+Kaplan–Meier (global + by Contract) and Cox PH on `tenure` / `Churn`.  
+Artifacts: `survival_kaplan_meier.png`, `survival_cox_hazard_ratios.csv`, `survival_risk_scoring.csv`.

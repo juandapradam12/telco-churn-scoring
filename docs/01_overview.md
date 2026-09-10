@@ -1,47 +1,47 @@
 # 01 — Overview
 
-## El problema
+## The problem
 
-Una fuerza comercial no puede visitar a todos los clientes. Llamar al azar:
+A field sales team cannot visit every customer. Calling at random:
 
-- desperdicia visitas en clientes de bajo riesgo,
-- llega tarde a los que se van a ir,
-- no distingue retención vs upsell vs error de facturación.
+- wastes visits on low-risk customers,
+- arrives too late for those about to leave,
+- fails to separate retention vs upsell vs billing issues.
 
-El dataset [Telco Customer Churn](https://www.kaggle.com/blastchar/telco-customer-churn) tiene **7,043 clientes** y **~26.5% churn**.  
-Un modelo naive (“siempre No Churn”) acierta ~73% de accuracy **sin detectar a nadie**. Accuracy no sirve.
+The [Telco Customer Churn](https://www.kaggle.com/blastchar/telco-customer-churn) dataset has **7,043 customers** and **~26.5% churn**.  
+A naive model (“always No Churn”) gets ~73% accuracy **without detecting anyone**. Accuracy is the wrong metric.
 
-## El gancho (planteamiento → resultado)
+## The pitch (problem → result)
 
-**Planteamiento:** no puedes llamar a todo el mundo.  
-**Resultado:** un ranking accionable donde contactar el **top 20%** captura ~**51%** de los churners (**2.5×** vs aleatorio).
+**Problem:** you cannot call everyone.  
+**Result:** an actionable ranking where contacting the **top 20%** captures ~**51%** of churners (**2.5×** vs random).
 
-## Qué construye este proyecto
+## What this project builds
 
-No es “un modelo de clasificación”. Es un **sistema de priorización comercial** con varias capas:
+This is not “just a classifier”. It is a **commercial prioritization system** with several layers:
 
-| Capa | Pregunta que responde | Output |
-|------|------------------------|--------|
-| **Case 1 — Clasificación** | ¿Se va? | `churn_score` calibrado + tiers |
-| **Case 2 — Regresión** | ¿Cuánto más podría facturar? | potencial €/mes + prioridad upsell |
-| **Case 3 — Anomalías** | ¿Hay rareza de facturación? | `anomaly_score` |
-| **Case 4 — Survival** | ¿Cuándo se va? | P(churn en 6/12/24 meses) |
-| **Unificado** | ¿Qué hago yo ahora? | segmento + acción recomendada |
+| Layer | Question it answers | Output |
+|-------|---------------------|--------|
+| **Case 1 — Classification** | Will they churn? | Calibrated `churn_score` + tiers |
+| **Case 2 — Regression** | How much more could they spend? | Monthly upsell potential + priority |
+| **Case 3 — Anomalies** | Is billing behavior unusual? | `anomaly_score` |
+| **Case 4 — Survival** | When might they churn? | P(churn within 6/12/24 months) |
+| **Unified** | What should I do now? | Segment + recommended action |
 
-## Principios de diseño
+## Design principles
 
-1. **Validación honesta:** train / val / test. Tuning en train, calibración/umbrales en val, métricas en test.
-2. **Probabilidades útiles:** calibración (sigmoid) + Brier/ECE.
-3. **Decisión de negocio:** umbral por costes + lift/gains (no solo F1).
-4. **Tiempo:** survival añade urgencia, no solo riesgo estático.
-5. **Acción:** el score unificado traduce ML en playbooks (`Retain_HighValue`, `Grow_Upsell`, …).
+1. **Honest validation:** train / val / test. Tuning on train, calibration/thresholds on val, metrics on test.
+2. **Useful probabilities:** calibration (sigmoid) + Brier/ECE.
+3. **Business decisions:** cost-based thresholds + lift/gains (not F1 alone).
+4. **Timing:** survival adds urgency, not only static risk.
+5. **Action:** the unified score turns ML into playbooks (`Retain_HighValue`, `Grow_Upsell`, …).
 
-## Para quién es este repo
+## Who this repo is for
 
-- Portfolio / caso técnico de ML aplicado a negocio
-- Data scientists que quieren ver un end-to-end defendible
-- Perfiles de negocio que necesitan una cola priorizada, no un AUC aislado
+- Portfolio / deep technical case studies
+- Data scientists who want a defendable end-to-end story
+- Business stakeholders who need a prioritized queue, not an isolated AUC
 
-## Siguiente lectura
+## Next
 
 → [02 — Methodology](02_methodology.md)
