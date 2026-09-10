@@ -109,3 +109,8 @@ telco-churn-scoring/
 - Index: [docs README](README.md)
 - Methodology: [02_methodology.md](02_methodology.md)
 - Results: [03_results.md](03_results.md)
+
+## Navigation
+
+← Previous: [04 — Business playbook](04_business_playbook.md)  
+→ Next: [Docs index](README.md)
