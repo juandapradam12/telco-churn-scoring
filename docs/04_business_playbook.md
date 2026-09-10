@@ -65,6 +65,7 @@ Speaking script: [demo_2min.md](demo_2min.md)
 
 ---
 
-## Next
+## Navigation
 
-→ [05 — Developer guide](05_developer_guide.md)
+← Previous: [03 — Results](03_results.md)  
+→ Next: [05 — Developer guide](05_developer_guide.md)

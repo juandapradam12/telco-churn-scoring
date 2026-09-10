@@ -36,6 +36,7 @@ This is not “just a classifier”. It is a **commercial prioritization system*
 4. **Timing:** survival adds urgency, not only static risk.
 5. **Action:** the unified score turns ML into playbooks (`Retain_HighValue`, `Grow_Upsell`, …).
 
-## Next
+## Navigation
 
-→ [02 — Methodology](02_methodology.md)
+← Previous: [Docs index](README.md)  
+→ Next: [02 — Methodology](02_methodology.md)

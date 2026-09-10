@@ -144,6 +144,7 @@ Segment detail: [04 — Business playbook](04_business_playbook.md).
 - Feature importance (tree models)
 - SHAP summary (when applicable)
 
-## Next
+## Navigation
 
-→ [03 — Results](03_results.md)
+← Previous: [01 — Overview](01_overview.md)  
+→ Next: [03 — Results](03_results.md)

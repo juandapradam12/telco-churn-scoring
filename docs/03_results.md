@@ -175,6 +175,7 @@ Typical segments: `Maintain`, `Retain_Urgent`, `Retain_HighValue`, `Grow_Upsell`
 
 ---
 
-## Next
+## Navigation
 
-→ [04 — Business playbook](04_business_playbook.md)
+← Previous: [02 — Methodology](02_methodology.md)  
+→ Next: [04 — Business playbook](04_business_playbook.md)
