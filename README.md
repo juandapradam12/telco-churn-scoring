@@ -23,11 +23,6 @@
 
 Quick reads: [one-pager](docs/results_one_pager.md) · [2-min demo](docs/demo_2min.md) · [A vs B](docs/example_client_a_vs_b.md)
 
-**GitHub About description:**
-```text
-Most sales teams call the wrong customers. This project turns telco data into a ranked playbook—retain, upsell, or investigate—where the top 20% captures ~51% of churners (2.5× random).
-```
-
 ---
 
 ## Quick start
